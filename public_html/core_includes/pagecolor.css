@@ -1,0 +1,50 @@
+/* style.css */
+body {
+  background-color: #2f2f2f !important;
+  color: #f5f5f5 !important;
+  font-family: Arial, sans-serif;
+}
+
+.container,
+.container-fluid {
+  background-color: transparent !important;
+  color: inherit;
+}
+
+.form-control,
+.form-select {
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid #666;
+}
+
+.form-control::placeholder,
+.form-select option {
+  color: #ccc;
+}
+
+.btn-outline-secondary {
+  background-color: #4682B4;
+  color: white;
+  border: none;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #5a9bd5;
+}
+
+.navbar,
+.navbar .nav-link {
+  background-color: #1f1f1f !important;
+  color: #d3d3d3 !important;
+}
+
+.navbar .nav-link:hover {
+  color: #ffffff !important;
+}
+
+footer,
+.navbar.fixed-bottom {
+  background-color: #1f1f1f;
+  color: #d3d3d3;
+}
