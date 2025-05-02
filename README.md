@@ -26,15 +26,6 @@ A web-based system that streamlines real-time inventory tracking, low-stock aler
 - **Hosting:** Cloud Linux / Apache  
 - **Version Control:** Git & GitHub  
 
----
-
-## Getting Started
-
-1. **Clone the repository**  
-2. **Configure** your database credentials in `connection.php` (or your chosen config file).  
-3. **Import** the provided SQL schema to create the necessary tables (`Inventory`, `RoleAccess`, `Orders`, etc.).  
-4. **Point** your web server’s document root at the project’s `public/` (or top-level) directory.  
-5. **Visit** the site in your browser, sign up as Admin (creates your warehouse group), then invite Staff.
 
 ---
 
@@ -52,25 +43,10 @@ A web-based system that streamlines real-time inventory tracking, low-stock aler
 
 ---
 
-## Contributing
-
-1. Fork and clone the repo  
-2. Create a feature branch (`git checkout -b feature/xyz`)  
-3. Commit your changes and push  
-4. Open a pull request—describe your changes and link any related issue
-
----
-
 ## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## Authors
-
-- **Carlos Cuadra** – Authentication & RBAC  
-- **Andrew Puig** – Inventory CRUD & Database Schema  
-- **Jose Flores** – Update Logic & Notifications  
-- **Cesar Collazo** – Search & Reporting  
 
