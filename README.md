@@ -1,80 +1,76 @@
 # Investorage
 
 **Full-Stack Inventory Management for SMEs**  
-_A web-based system to streamline inventory tracking, low-stock alerts, order imports/exports, and reporting for small-to-medium warehouses._
-
----
-
-## Table of Contents
-
-- [Features](#features)  
-- [Demo](#demo)  
-- [Tech Stack](#tech-stack)  
-- [Getting Started](#getting-started)  
-  - [Prerequisites](#prerequisites)  
-  - [Installation](#installation)  
-  - [Configuration](#configuration)  
-  - [Database Setup](#database-setup)  
-  - [Running](#running)  
-- [Usage](#usage)  
-- [Folder Structure](#folder-structure)  
-- [Testing](#testing)  
-- [Contributing](#contributing)  
-- [License](#license)  
-- [Authors](#authors)
+A web-based system that streamlines real-time inventory tracking, low-stock alerts, order imports/exports, and reporting for small-to-medium warehouses.
 
 ---
 
 ## Features
 
-- **Secure Authentication & RBAC**  
-  Admin/Staff roles with PHP sessions and prepared statements
-- **Inventory CRUD**  
-  Add, edit, remove items; real-time low-stock alerts via dashboard bell
-- **Order Management**  
-  Import via CSV/JSON, export PDF/CSV; duplicate detection & per-row error reporting
-- **Advanced Search & Filters**  
-  Filter by SKU, name, category, status—scoped per logged-in user
-- **Change Inventory Interface**  
-  JavaScript-driven toggles for selective field updates
-- **Audit Logging**  
-  Tracks who changed what, when; supports historical forensic reports
-- **Reporting**  
-  Generate date-range reports and download as PDF
-- **Session Timeout & Error Handling**  
-  Inline Bootstrap alerts for validation, duplicates, and session expiry
-
----
-
-## Demo
-
-![Dashboard](docs/screenshot-dashboard.png)  
-![Order Import](docs/screenshot-import.png)
+- **Secure Authentication & RBAC**: Admin and Staff roles enforced via PHP sessions and prepared statements.  
+- **Inventory CRUD**: Add, edit, remove items with real-time low-stock alerts via dynamic notification bell.  
+- **Order Management**: CSV/JSON import and PDF/CSV export pipelines with duplicate-detection and per-row error reporting.  
+- **Advanced Search & Filters**: Search by SKU, name, category or status, scoped to the logged-in user’s data.  
+- **Selective “Change Inventory” UI**: JavaScript-driven toggles let you update only the fields you choose.  
+- **Audit Logging**: Every stock change (who, when, old vs new) is recorded for historical reporting.  
+- **Reporting**: Generate date-range PDF exports of current inventory, changes and order summaries.  
+- **Error Handling & Session Timeouts**: Inline Bootstrap alerts and inactivity redirects keep the UX smooth.
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** HTML5, CSS3, [Bootstrap 5](https://getbootstrap.com/), JavaScript  
+- **Frontend:** HTML5, CSS3, Bootstrap 5, JavaScript  
 - **Backend:** PHP 8+  
 - **Database:** MySQL (InnoDB)  
-- **Hosting:** Shared/Cloud Linux (HostGator)  
+- **Hosting:** Cloud Linux / Apache  
 - **Version Control:** Git & GitHub  
 
 ---
 
 ## Getting Started
 
-### Prerequisites
+1. **Clone the repository**  
+2. **Configure** your database credentials in `connection.php` (or your chosen config file).  
+3. **Import** the provided SQL schema to create the necessary tables (`Inventory`, `RoleAccess`, `Orders`, etc.).  
+4. **Point** your web server’s document root at the project’s `public/` (or top-level) directory.  
+5. **Visit** the site in your browser, sign up as Admin (creates your warehouse group), then invite Staff.
 
-- PHP 8+  
-- MySQL 5.7+  
-- Web server (Apache/Nginx) with HTTPS  
-- Git
+---
 
-### Installation
+## Usage
 
-1. **Clone repository**  
-   ```bash
-   git clone https://github.com/AndrewPuig77/Investorage.git
-   cd Investorage
+1. **Sign Up / Log In**  
+2. **Dashboard** links: Add Inventory, Remove Inventory, Change Inventory, Reports, Order Import.  
+3. **Add Inventory**: enter SKU, name, category, price, stock, status, low-stock threshold.  
+4. **Remove Inventory**: decrement or delete by quantity.  
+5. **Change Inventory**: select an item, click the field-specific button(s) you want to edit, submit.  
+6. **Search**: filter by name, category, or status.  
+7. **Order Import/Export**: upload CSV/JSON, review per-row errors, export results.  
+8. **Reports**: generate and download PDF summaries by date range.  
+9. **Logout** or wait out the session timeout to return to login.
+
+---
+
+## Contributing
+
+1. Fork and clone the repo  
+2. Create a feature branch (`git checkout -b feature/xyz`)  
+3. Commit your changes and push  
+4. Open a pull request—describe your changes and link any related issue
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+## Authors
+
+- **Carlos Cuadra** – Authentication & RBAC  
+- **Andrew Puig** – Inventory CRUD & Database Schema  
+- **Jose Flores** – Update Logic & Notifications  
+- **Cesar Collazo** – Search & Reporting  
+
