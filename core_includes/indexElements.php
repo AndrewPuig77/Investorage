@@ -31,7 +31,7 @@ $head =
     to { top: 0px; }
   }
 
-  /* 🎯 Table-specific dark theme styles */
+  /* ðŸŽ¯ Table-specific dark theme styles */
   table.table {
     color: #f5f5f5;
     background-color: #1a1a1a;
@@ -83,62 +83,56 @@ $head =
 
 </head>';
 
-$nav =
-'<nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+
+
+$nav = '
+<nav class="navbar navbar-expand-sm navbar-dark fixed-top">
   <div class="container-fluid">
-    <a class="navbar-brand" href="index.php">
-      <img src="Investorage_Logo2.png" alt="Investorage_Logo2" style="width:50px;" class="rounded">
+    <a class="navbar-brand" href="index.php" style="padding:0;">
+      <img src="New_Investorage_Logo.png"
+           alt="Investorage logo"
+           style="width:50px;height:50px;object-fit:contain;">
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#collapsibleNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="collapsibleNavbar">
       <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="index.php">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="logIn.php">Log In</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="logInSignUp.php">Sign Up</a>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="logIn.php">Log In</a></li>
+        <li class="nav-item"><a class="nav-link" href="logInSignUp.php">Sign Up</a></li>
       </ul>
     </div>
   </div>
 </nav>';
 
-$navActive =
-'<nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+$navActive = '
+<nav class="navbar navbar-expand-sm navbar-dark fixed-top">
   <div class="container-fluid">
-    <a class="navbar-brand" href="activeHome.php">
-      <img src="Investorage_Logo2.png" alt="Investorage Logo" style="width:50px;" class="rounded">
+    <a class="navbar-brand" href="activeHome.php" style="padding:0;">
+      <img src="New_Investorage_Logo.png"
+           alt="Investorage logo"
+           style="width:50px;height:50px;object-fit:contain;">
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#collapsibleNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="collapsibleNavbar">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="activeHome.php">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="searchInventory.php">Search</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="orderManagement.php">Order Management</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="lowstockReport.php">Low Stock Report</a>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="activeHome.php">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="searchInventory.php">Search</a></li>
+        <li class="nav-item"><a class="nav-link" href="orderManagement.php">Order Management</a></li>
+        <li class="nav-item"><a class="nav-link" href="lowstockReport.php">Low Stock Report</a></li>
       </ul>
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="help.php">Help</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="logOut.php">Sign Out</a>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="help.php">Help</a></li>
+        <li class="nav-item"><a class="nav-link" href="logOut.php">Sign Out</a></li>
       </ul>
     </div>
   </div>
@@ -177,14 +171,19 @@ $sampleCards =
   </div>
 </div>';
 
-$footer =
-'<nav class="navbar navbar-expand-sm navbar-dark fixed-bottom" style="background-color: #2f2f2f;">
+$footer = '
+<nav class="navbar navbar-expand-sm navbar-dark fixed-bottom" style="background-color:#2f2f2f;">
   <div class="container-fluid">
     <p class="text-light">Site design &amp; logo &#169; Investorage</p>
   </div>
 </nav>
+
+<!-- Bootstrap bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 <br><br>';
+
 
 $filler =
 '<br><br><br>
