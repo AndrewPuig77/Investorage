@@ -5,7 +5,11 @@ A comprehensive web-based inventory management platform designed for small-to-me
 
 [![PHP](https://img.shields.io/badge/PHP-8%2B-777BB4?style=flat-square&logo=php)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=flat-square&logo=mysql)](https://mysql.com)
+[![HTML5](https://img.shields.io/badge/HTML5-Latest-E34F26?style=flat-square&logo=html5)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-Latest-1572B6?style=flat-square&logo=css3)](https://developer.mozilla.org/en-US/docs/Web/CSS)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap)](https://getbootstrap.com)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=flat-square&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Git](https://img.shields.io/badge/Git-Version%20Control-F05032?style=flat-square&logo=git)](https://git-scm.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
@@ -170,7 +174,7 @@ investorage/
 
 ## 📄 License
 
-This project is licensed under the MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -183,4 +187,4 @@ This project is licensed under the MIT License
 
 ---
 
-**Want to test out investorage? Get started** [HERE](https://investorage.site/index.php)!
+**Ready to transform your inventory management?** [Try the demo](https://yoursite.com/createDemoAccount.php) or [get started](https://yoursite.com/logInSignUp.php) today!
