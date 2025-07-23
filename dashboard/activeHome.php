@@ -1,24 +1,20 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 session_start();
-print_r($_SESSION);
 include 'indexElements.php';
+
+// Check if user is logged in
+if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {
+    header("Location: logIn.php");
+    exit();
+}
+
 echo $license;
 ?>
 
 <html lang="en">
-<head>
-  <style>
-    body {
-      background-color: #1a1a1a;
-      color: #f5f5f5;
-    }
-  </style>
-</head>
+<?php echo $head; ?>
 <body>
   <?php echo $navActive; ?>
-  <?php echo $tagline; ?>
   <?php include 'dashboardCard.php'; ?>
   <?php echo $footer; ?>
 </body>
