@@ -11,6 +11,7 @@ if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {
 }
 
 $User_Id = $_SESSION["userID"];
+$GroupID = $_SESSION["GroupID"]; // This was missing!
 $userName = $_SESSION["userName"];
 $warehouseName = 'Main Warehouse'; // default fallback
 
@@ -49,6 +50,7 @@ class PDF extends FPDF
         $this->SetFont('Arial', '', 11);
         $this->Cell(0, 8, 'Warehouse: ' . $this->warehouseName, 0, 1);
         $this->Cell(0, 8, 'Exported By: ' . $this->exportedBy, 0, 1);
+        $this->Cell(0, 8, 'Generated: ' . date('Y-m-d H:i:s'), 0, 1);
         $this->Ln(5);
     }
 
@@ -56,50 +58,55 @@ class PDF extends FPDF
     {
         $this->SetFont('Arial', 'B', 12);
         $this->Cell(0, 10, $label, 0, 1);
+        $this->Ln(2);
     }
 
-    // FancyTable prints a table for the current inventory.
-    // Columns: SKU, Name, Category, Stock, Low Stock Warning, Value
+    // Current Inventory Table
     function FancyTable($header, $data)
     {
-        $widths = [30, 40, 30, 20, 30, 30]; // Column widths.
-        $this->SetFont('Arial', 'B', 10);
+        $widths = [25, 45, 35, 20, 25, 25];
+        $this->SetFont('Arial', 'B', 8);
+        
+        // Print header
         foreach ($header as $i => $col) {
-            $this->Cell($widths[$i], 7, $col, 1);
+            $this->Cell($widths[$i], 7, $col, 1, 0, 'C');
         }
         $this->Ln();
-        $this->SetFont('Arial', '', 10);
+
+        // Print data
+        $this->SetFont('Arial', '', 8);
         foreach ($data as $row) {
-            $this->Cell($widths[0], 7, $row['SKU'], 1);
-            $this->Cell($widths[1], 7, $row['Name'], 1);
-            $this->Cell($widths[2], 7, $row['Category'], 1);
-            $this->Cell($widths[3], 7, $row['Stock'], 1);
-            $this->Cell($widths[4], 7, $row['LowStockWarning'], 1);
-            $value = number_format(floatval($row['SalesPrice']) * floatval($row['Stock']), 2);
-            $this->Cell($widths[5], 7, "$" . $value, 1);
+            $this->Cell($widths[0], 7, substr($row['SKU'], 0, 15), 1);
+            $this->Cell($widths[1], 7, substr($row['Name'], 0, 25), 1);
+            $this->Cell($widths[2], 7, substr($row['Category'], 0, 20), 1);
+            $this->Cell($widths[3], 7, $row['Stock'], 1, 0, 'R');
+            $this->Cell($widths[4], 7, $row['LowStockWarning'], 1, 0, 'R');
+            $this->Cell($widths[5], 7, '$' . number_format($row['SalesPrice'], 2), 1, 0, 'R');
             $this->Ln();
         }
     }
 
-    // Revised LogTable:
-    // This version uses a single line per row (truncating text if needed) to avoid extra page breaks.
+    // Inventory Changes Log Table
     function LogTable($header, $data)
     {
-        $widths = [30, 25, 45, 45, 40];
+        $widths = [25, 20, 40, 40, 35, 30];
         $this->SetFont('Arial', 'B', 8);
-        // Print header row.
-        for ($i = 0; $i < count($header); $i++){
-            $this->Cell($widths[$i], 7, $header[$i], 1, 0, 'C');
+        
+        // Print header
+        foreach ($header as $i => $col) {
+            $this->Cell($widths[$i], 7, $col, 1, 0, 'C');
         }
         $this->Ln();
+
+        // Print data
         $this->SetFont('Arial', '', 8);
-        // For each row, print one line, truncating text if necessary.
         foreach ($data as $row) {
-            $this->Cell($widths[0], 7, substr($row['SKU'], 0, 20), 1);
-            $this->Cell($widths[1], 7, substr($row['ChangeType'], 0, 20), 1);
-            $this->Cell($widths[2], 7, substr($row['OldValue'], 0, 30), 1);
-            $this->Cell($widths[3], 7, substr($row['NewValue'], 0, 30), 1);
-            $this->Cell($widths[4], 7, substr($row['CreatedAt'], 0, 20), 1);
+            $this->Cell($widths[0], 7, substr($row['SKU'] ?? '', 0, 15), 1);
+            $this->Cell($widths[1], 7, substr($row['ChangeType'] ?? '', 0, 12), 1);
+            $this->Cell($widths[2], 7, substr($row['OldValue'] ?? '', 0, 24), 1);
+            $this->Cell($widths[3], 7, substr($row['NewValue'] ?? '', 0, 24), 1);
+            $this->Cell($widths[4], 7, substr($row['CreatedAt'] ?? '', 0, 19), 1);
+            $this->Cell($widths[5], 7, substr($row['Actor'] ?? '', 0, 14), 1);
             $this->Ln();
         }
     }
@@ -107,49 +114,67 @@ class PDF extends FPDF
     function SummaryTable($imports, $exports)
     {
         $this->SetFont('Arial', 'B', 10);
-        $this->Cell(40, 7, 'Type', 1);
-        $this->Cell(40, 7, '# of Orders', 1);
-        $this->Cell(40, 7, 'Total Items', 1);
-        $this->Cell(60, 7, 'Total Value', 1);
+        $this->Cell(40, 7, 'Type', 1, 0, 'C');
+        $this->Cell(40, 7, '# of Orders', 1, 0, 'C');
+        $this->Cell(40, 7, 'Total Items', 1, 0, 'C');
+        $this->Cell(60, 7, 'Total Value', 1, 0, 'C');
         $this->Ln();
 
         $this->SetFont('Arial', '', 10);
 
         $this->Cell(40, 7, 'Imports', 1);
-        $this->Cell(40, 7, $imports['count'] ?? 0, 1);
-        $this->Cell(40, 7, $imports['totalItems'] ?? 0, 1);
-        $this->Cell(60, 7, "$" . number_format($imports['totalValue'] ?? 0, 2), 1);
+        $this->Cell(40, 7, $imports['count'] ?? 0, 1, 0, 'R');
+        $this->Cell(40, 7, $imports['totalItems'] ?? 0, 1, 0, 'R');
+        $this->Cell(60, 7, "$" . number_format($imports['totalValue'] ?? 0, 2), 1, 0, 'R');
         $this->Ln();
 
         $this->Cell(40, 7, 'Exports', 1);
-        $this->Cell(40, 7, $exports['count'] ?? 0, 1);
-        $this->Cell(40, 7, $exports['totalItems'] ?? 0, 1);
-        $this->Cell(60, 7, "$" . number_format($exports['totalValue'] ?? 0, 2), 1);
+        $this->Cell(40, 7, $exports['count'] ?? 0, 1, 0, 'R');
+        $this->Cell(40, 7, $exports['totalItems'] ?? 0, 1, 0, 'R');
+        $this->Cell(60, 7, "$" . number_format($exports['totalValue'] ?? 0, 2), 1, 0, 'R');
         $this->Ln();
     }
 }
 
 try {
     // --- Fetch Current Inventory ---
-    $stmt = $conn->prepare("SELECT SKU, Name, Category, Stock, SalesPrice, LowStockWarning FROM Inventory WHERE User_Id = ?");
-    $stmt->bind_param("i", $User_Id);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $inventory = [];
-    while ($row = $res->fetch_assoc()){
-        $inventory[] = $row;
+    $stmt = $conn->prepare("
+        SELECT SKU, Name, Category, Stock, LowStockWarning, SalesPrice
+        FROM Inventory 
+        WHERE GroupID = ?
+        ORDER BY Name
+    ");
+    if (!$stmt) {
+        throw new Exception("Prepare failed for inventory: " . $conn->error);
     }
+    $stmt->bind_param("i", $GroupID);
+    $stmt->execute();
+    $inventory = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     // --- Fetch Recent Inventory Changes ---
-    $stmt = $conn->prepare("SELECT SKU, ChangeType, OldValue, NewValue, CreatedAt FROM inventory_log WHERE User_Id = ? ORDER BY CreatedAt DESC LIMIT 50");
-    $stmt->bind_param("i", $User_Id);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $logRows = [];
-    while ($row = $res->fetch_assoc()){
-        $logRows[] = $row;
+    $stmt = $conn->prepare("
+        SELECT
+            il.SKU,
+            CASE
+                WHEN il.ChangeType IN ('removeAll','removeSelected') THEN 'Removed'
+                ELSE il.ChangeType
+            END AS ChangeType,
+            il.OldValue,
+            il.NewValue,
+            il.CreatedAt,
+            il.User_Id AS Actor
+        FROM inventory_log il
+        WHERE il.GroupID = ?
+        ORDER BY il.CreatedAt DESC
+        LIMIT 50
+    ");
+    if (!$stmt) {
+        throw new Exception("Prepare failed for inventory log: " . $conn->error);
     }
+    $stmt->bind_param('i', $GroupID);
+    $stmt->execute();
+    $logRows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
     // --- Fetch Imports Summary ---
@@ -188,21 +213,43 @@ try {
     $pdf->exportedBy = $userName;
     $pdf->AddPage();
 
-    $pdf->SectionTitle('Current Inventory');
-    $pdf->FancyTable(['SKU', 'Name', 'Category', 'Stock', 'Low Stock Warning', 'Value'], $inventory);
+    // Current Inventory Section
+    $pdf->SectionTitle('Current Inventory (' . count($inventory) . ' items)');
+    if (!empty($inventory)) {
+        $pdf->FancyTable(['SKU', 'Name', 'Category', 'Stock', 'Low Stock', 'Price'], $inventory);
+    } else {
+        $pdf->SetFont('Arial', 'I', 10);
+        $pdf->Cell(0, 10, 'No inventory items found.', 0, 1);
+    }
 
+    // Recent Changes Section
     $pdf->Ln(10);
-    $pdf->SectionTitle('Recent Inventory Changes');
-    $pdf->LogTable(['SKU', 'Type', 'Old Value', 'New Value', 'Time'], $logRows);
+    $pdf->SectionTitle('Recent Inventory Changes (' . count($logRows) . ' entries)');
+    if (!empty($logRows)) {
+        $pdf->LogTable(['SKU', 'Type', 'Old Value', 'New Value', 'Time', 'User ID'], $logRows);
+    } else {
+        $pdf->SetFont('Arial', 'I', 10);
+        $pdf->Cell(0, 10, 'No recent changes found.', 0, 1);
+    }
 
+    // Summary Section
     $pdf->Ln(10);
     $pdf->SectionTitle('Imports & Exports Summary');
     $pdf->SummaryTable($import, $export);
 
-    $pdf->Output("I", "Inventory_Report.pdf");
+    // Output PDF
+    $pdf->Output("I", "Inventory_Report_" . date('Y-m-d') . ".pdf");
 
 } catch (Exception $e) {
-    echo "An error occurred generating the report: " . $e->getMessage();
+    // Log the error and show user-friendly message
+    error_log("PDF Report Error: " . $e->getMessage());
+    
+    // Return proper HTTP response
+    http_response_code(500);
+    echo json_encode([
+        'error' => true,
+        'message' => 'Failed to generate report: ' . $e->getMessage()
+    ]);
     exit();
 }
 ?>
