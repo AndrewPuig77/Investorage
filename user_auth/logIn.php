@@ -24,13 +24,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = $_POST["password"];
     }
     if (empty($emailError) && empty($passwordError)) {
-        $sql = "SELECT * FROM RoleAccess WHERE email = ? AND password = ?";
+        $sql = "SELECT * FROM RoleAccess WHERE email = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $email, $password);
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $results = $stmt->get_result();
-        if ($results && $results->num_rows == 1) {
-            $detail = $results->fetch_assoc();
+        $detail = ($results && $results->num_rows == 1) ? $results->fetch_assoc() : null;
+        // Passwords are stored as password_hash() hashes
+        if ($detail && password_verify($password, $detail["password"])) {
             $_SESSION["email"]    = $detail["email"];
             $_SESSION["userName"] = $detail["userName"];
             $_SESSION["userID"]   = $detail["UserID"];

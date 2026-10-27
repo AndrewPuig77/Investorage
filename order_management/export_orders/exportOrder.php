@@ -43,7 +43,7 @@ if ($Role === 'admin') {
     $stmt = $conn->prepare("SELECT * FROM OrderItems WHERE OrderID = ?");
     $stmt->bind_param("s", $orderID);
 } else {
-    $stmt = $conn->prepare("SELECT * FROM OrderItems WHERE OrderID = ? AND UserID = ?");
+    $stmt = $conn->prepare("SELECT * FROM OrderItems WHERE OrderID = ? AND User_Id = ?");
     $stmt->bind_param("si", $orderID, $User_Id);
 }
 $stmt->execute();

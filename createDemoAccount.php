@@ -24,14 +24,16 @@ $conn->begin_transaction();
 try {
     // 1. Create warehouse group
     $stmt = $conn->prepare("INSERT INTO WarehouseGroups (GroupName, GroupPassword) VALUES (?, ?)");
-    $stmt->bind_param("ss", $demoGroupName, $demoGroupPassword);
+    $hashedGroupPassword = password_hash($demoGroupPassword, PASSWORD_DEFAULT);
+    $stmt->bind_param("ss", $demoGroupName, $hashedGroupPassword);
     $stmt->execute();
     $GroupID = $stmt->insert_id;
     $stmt->close();
 
     // 2. Create demo user account
     $stmt = $conn->prepare("INSERT INTO RoleAccess (email, entryDate, FirstName, LastName, password, Role, userName, GroupID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssi", $demoEmail, $date, $demoFirstName, $demoLastName, $demoPassword, $demoRole, $demoUserName, $GroupID);
+    $hashedPassword = password_hash($demoPassword, PASSWORD_DEFAULT);
+    $stmt->bind_param("sssssssi", $demoEmail, $date, $demoFirstName, $demoLastName, $hashedPassword, $demoRole, $demoUserName, $GroupID);
     $stmt->execute();
     $User_Id = $stmt->insert_id;
     $stmt->close();

@@ -112,7 +112,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $stmt = $conn->prepare(
             "INSERT INTO WarehouseGroups (GroupName, GroupPassword) VALUES (?, ?)"
           );
-          $stmt->bind_param("ss", $groupName, $groupPassword);
+          $hashedGroupPassword = password_hash($groupPassword, PASSWORD_DEFAULT);
+          $stmt->bind_param("ss", $groupName, $hashedGroupPassword);
           $stmt->execute();
           $GroupID = $stmt->insert_id;
           $stmt->close();
@@ -128,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->execute();
         $res = $stmt->get_result();
         if ($row = $res->fetch_assoc()) {
-          if ($groupPassword !== $row['GroupPassword']) {
+          if (!password_verify($groupPassword, $row['GroupPassword'])) {
             $groupError    = "Group password is incorrect.";
             $groupPassword = "";
           } else {
@@ -148,13 +149,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
            (email, entryDate, FirstName, LastName, password, Role, userName, GroupID)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $stmt->bind_param(
           "sssssssi",
           $email,
           $date,
           $firstName,
           $lastName,
-          $password,
+          $hashedPassword,
           $role,
           $userName,
           $GroupID

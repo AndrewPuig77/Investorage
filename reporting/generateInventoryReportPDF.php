@@ -165,7 +165,7 @@ try {
             il.CreatedAt,
             il.User_Id AS Actor
         FROM inventory_log il
-        WHERE il.GroupID = ?
+        WHERE il.User_Id IN (SELECT UserID FROM RoleAccess WHERE GroupID = ?)
         ORDER BY il.CreatedAt DESC
         LIMIT 50
     ");
