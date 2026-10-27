@@ -61,7 +61,7 @@ if ($customDateFrom && $customDateTo) {
     <title>Inventory Report - Investorage</title>
     <style>
         body {
-            background-color: #1a1a1a;
+            background-color: var(--dark-bg);
             color: #f5f5f5;
         }
         

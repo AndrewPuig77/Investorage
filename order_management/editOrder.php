@@ -74,7 +74,7 @@ mysqli_close($conn);
     
 <style>
   body {
-    background-color: #1a1a1a;
+    background-color: var(--dark-bg);
     color: #f5f5f5;
   }
 </style>

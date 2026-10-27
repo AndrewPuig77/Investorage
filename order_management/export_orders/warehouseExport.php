@@ -46,7 +46,7 @@ $conn->close();
     <title>Export Inventory to Location</title>
     <style>
         body {
-            background-color: #1a1a1a;
+            background-color: var(--dark-bg);
             color: #f5f5f5;
         }
         .export-container {

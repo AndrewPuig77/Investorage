@@ -129,7 +129,7 @@ $conn->close();
         body {
             background-color: var(--dark-bg);
             color: var(--text-primary);
-            padding-top: 80px;
+            padding-top: 24px; /* was 80px for the old fixed top menu */
         }
         
         .remove-container {

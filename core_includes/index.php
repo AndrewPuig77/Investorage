@@ -7,210 +7,283 @@ echo $license;
 <html lang="en">
 <head>
   <?php echo $head; ?>
-  <meta name="description" content="Modern inventory management system for warehouses. Real-time tracking, smart alerts, and powerful analytics.">
-  <title>Investorage | Modern Inventory Management System</title>
-  
+  <meta name="description" content="Investorage is a free inventory manager for small warehouses: track stock, get low-stock warnings, import and export orders, and keep a full audit trail.">
+  <title>Investorage | Inventory management for small warehouses</title>
+
   <style>
-    /* Hero Section */
-    .hero-section {
-      min-height: 100vh;
-      position: relative;
-      display: flex;
+    .landing section {
+      padding: 96px 0;
+    }
+
+    .landing section + section {
+      border-top: 1px solid var(--border-color);
+    }
+
+    .landing h1,
+    .landing h2,
+    .landing h3 {
+      letter-spacing: -0.025em;
+    }
+
+    .section-head {
+      max-width: 640px;
+      margin-bottom: 48px;
+    }
+
+    .section-head h2 {
+      margin-bottom: 12px;
+      font-size: clamp(1.875rem, 3.5vw, 2.5rem);
+    }
+
+    .section-head p,
+    .lede {
+      margin: 0;
+      font-size: 1.125rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* Hero */
+    .landing .hero {
+      padding: 152px 0 96px;
+    }
+
+    .hero h1 {
+      margin-bottom: 20px;
+      font-size: clamp(2.5rem, 5.5vw, 4rem);
+      line-height: 1.05;
+    }
+
+    .hero h1 span {
+      color: var(--link-color);
+    }
+
+    .eyebrow {
+      display: inline-flex;
       align-items: center;
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-      overflow: hidden;
+      gap: 8px;
+      margin-bottom: 24px;
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
     }
-    
-    .hero-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.1;
-      background-image: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(70,130,180,0.3)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
     }
-    
-    .floating-shape {
-      position: absolute;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-      opacity: 0.1;
-      animation: float 20s infinite ease-in-out;
+
+    .hero-note {
+      margin: 16px 0 0;
+      font-size: 0.875rem;
+      color: var(--text-muted);
     }
-    
-    .shape-1 {
-      width: 300px;
-      height: 300px;
-      top: 10%;
-      left: 5%;
-      animation-delay: 0s;
-    }
-    
-    .shape-2 {
-      width: 200px;
-      height: 200px;
-      bottom: 10%;
-      right: 10%;
-      animation-delay: 5s;
-    }
-    
-    .shape-3 {
-      width: 150px;
-      height: 150px;
-      top: 50%;
-      right: 5%;
-      animation-delay: 10s;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(30px, -30px) rotate(120deg); }
-      66% { transform: translate(-20px, 20px) rotate(240deg); }
-    }
-    
-    /* Feature Cards */
-    .feature-card {
+
+    /* Product preview, drawn in HTML from the demo account's sample data */
+    .preview {
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
       background: var(--card-bg);
-      border-radius: 20px;
-      padding: 2.5rem;
-      height: 100%;
-      border: 1px solid transparent;
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
     }
-    
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, transparent, rgba(70, 130, 180, 0.1));
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-    
-    .feature-card:hover {
-      transform: translateY(-10px);
-      border-color: var(--primary-color);
-      box-shadow: 0 20px 40px rgba(70, 130, 180, 0.2);
-    }
-    
-    .feature-card:hover::before {
-      opacity: 1;
-    }
-    
-    .feature-icon {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-      border-radius: 20px;
+
+    .preview-bar {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: white;
-      margin-bottom: 1.5rem;
-      transition: transform 0.4s ease;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
     }
-    
-    .feature-card:hover .feature-icon {
-      transform: rotate(360deg);
+
+    .preview-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
     }
-    
-    /* Stats Section */
-    .stats-section {
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-      position: relative;
-      overflow: hidden;
+
+    .preview-kpi {
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--dark-bg);
     }
-    
-    .stats-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23dots)"/></svg>');
+
+    .preview-kpi span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
     }
-    
-    .stat-card {
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .stat-number {
-      font-size: 3.5rem;
-      font-weight: 800;
-      color: white;
-      margin-bottom: 0.5rem;
-    }
-    
-    .stat-label {
+
+    .preview-kpi strong {
+      display: block;
+      margin-top: 4px;
       font-size: 1.25rem;
-      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: -0.02em;
     }
-    
-    /* Pricing Cards */
-    .pricing-card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 2.5rem;
-      text-align: center;
-      border: 2px solid var(--border-color);
-      transition: all 0.4s ease;
-      position: relative;
+
+    .preview-kpi.alerting {
+      border-color: #3A2A2C;
+      background: #1B1719;
     }
-    
-    .pricing-card.featured {
-      border-color: var(--primary-color);
-      transform: scale(1.05);
+
+    .preview-kpi.alerting span {
+      color: #F5999B;
     }
-    
-    .pricing-card:hover {
-      transform: translateY(-10px);
-      border-color: var(--primary-color);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--dark-bg);
     }
-    
-    .pricing-badge {
-      position: absolute;
-      top: -15px;
-      right: -15px;
-      background: var(--primary-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
+
+    .preview-panel h3 {
+      margin: 0;
       font-size: 0.875rem;
       font-weight: 600;
     }
-    
-    /* CTA Section */
-    .cta-section {
-      background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-      position: relative;
-      overflow: hidden;
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+      font-size: 0.8125rem;
     }
-    
-    .cta-section::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(70, 130, 180, 0.1), transparent);
-      animation: rotate 30s linear infinite;
+
+    .preview-row span:last-child {
+      color: var(--text-secondary);
     }
-    
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+
+    .preview-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border-color);
+    }
+
+    .preview-track span {
+      display: block;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--primary-color);
+    }
+
+    .preview-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--card-hover);
+      font-size: 0.8125rem;
+    }
+
+    .preview-item small {
+      display: block;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+    }
+
+    /* Features */
+    .feature {
+      height: 100%;
+      padding: 24px;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      background: var(--card-bg);
+    }
+
+    .feature-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-bottom: 16px;
+      border-radius: 10px;
+      background: rgba(110,168,222,.12);
+      color: #9CC4EA;
+    }
+
+    .feature h3 {
+      margin-bottom: 8px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+    }
+
+    .feature p {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* How it works */
+    .step {
+      display: flex;
+      gap: 16px;
+    }
+
+    .step-num {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      font-weight: 600;
+      color: var(--link-color);
+    }
+
+    .step h3 {
+      margin-bottom: 6px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+    }
+
+    .step p {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* Call to action */
+    .cta {
+      padding: 48px 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background: var(--card-bg);
+      text-align: center;
+    }
+
+    .cta h2 {
+      margin-bottom: 12px;
+      font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+    }
+
+    .cta .hero-actions {
+      justify-content: center;
+    }
+
+    @media (max-width: 767.98px) {
+      .landing section { padding: 64px 0; }
+      .landing .hero { padding: 120px 0 64px; }
+      .preview-kpis { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -218,344 +291,175 @@ echo $license;
 <body>
   <?php echo $nav; ?>
 
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="hero-bg"></div>
-    <div class="floating-shape shape-1"></div>
-    <div class="floating-shape shape-2"></div>
-    <div class="floating-shape shape-3"></div>
-    
-    <div class="container position-relative">
-      <div class="row align-items-center min-vh-100">
-        <div class="col-lg-6" data-aos="fade-right">
-          <h1 class="display-1 fw-bold mb-4">
-            Modern <span class="gradient-text">Inventory</span><br>
-            Management
-          </h1>
-          <p class="lead mb-4 text-secondary">
-            Transform your warehouse operations with real-time tracking, intelligent analytics, and seamless team collaboration. Built for businesses that move fast.
-          </p>
-          <div class="d-flex flex-wrap gap-3">
-            <a href="logInSignUp.php" class="btn btn-primary btn-lg">
-              <i class="fas fa-rocket"></i> Get Started Free
-            </a>
-            <a href="createDemoAccount.php" class="btn btn-secondary btn-lg">
-              <i class="fas fa-play-circle"></i> Try Demo
-            </a>
+  <main class="landing">
+    <section class="hero">
+      <div class="container">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-6">
+            <span class="eyebrow"><i class="fas fa-box" aria-hidden="true"></i> Free inventory manager for small warehouses</span>
+            <h1>Know what's on every shelf. <span>Before you run out.</span></h1>
+            <p class="lede">Investorage tracks your stock, warns you when items run low, brings orders in by CSV, and logs every change with who made it.</p>
+            <div class="hero-actions">
+              <a href="createDemoAccount.php" class="btn btn-primary btn-lg"><i class="fas fa-play" aria-hidden="true"></i> Try the demo</a>
+              <a href="logInSignUp.php" class="btn btn-secondary btn-lg">Create an account</a>
+            </div>
+            <p class="hero-note">The demo opens a sample warehouse straight away. No sign-up needed.</p>
           </div>
-          <div class="mt-5 d-flex flex-wrap gap-4">
-            <div>
-              <h4 class="mb-0">500+</h4>
-              <small class="text-muted">Active Warehouses</small>
-            </div>
-            <div>
-              <h4 class="mb-0">2M+</h4>
-              <small class="text-muted">Items Tracked</small>
-            </div>
-            <div>
-              <h4 class="mb-0">99.9%</h4>
-              <small class="text-muted">Uptime</small>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-6" data-aos="fade-left">
-          <div class="position-relative">
-            <img src="dashboard-preview.png" alt="Dashboard Preview" class="img-fluid rounded-4 shadow-lg" style="display: none;">
-            <!-- Placeholder for dashboard preview -->
-            <div class="modern-card p-5 text-center">
-              <i class="fas fa-chart-line fa-5x mb-4 gradient-text"></i>
-              <h3>Real-time Dashboard</h3>
-              <p class="text-secondary">Monitor your entire inventory from a single, powerful interface</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Features Section -->
-  <section id="features" class="py-5">
-    <div class="container">
-      <div class="text-center mb-5" data-aos="fade-up">
-        <h2 class="display-4 fw-bold">Everything You Need</h2>
-        <p class="lead text-secondary">Powerful features designed for modern warehouses</p>
-      </div>
-      
-      <div class="row g-4">
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-chart-line"></i>
+          <div class="col-lg-6">
+            <div class="preview" role="img" aria-label="Preview of the Investorage dashboard showing inventory value, low stock and value by category">
+              <div class="preview-bar">
+                <span>Demo Warehouse · Dashboard</span>
+                <span>Sample data</span>
+              </div>
+              <div class="preview-kpis">
+                <div class="preview-kpi"><span>Inventory value</span><strong>$87,364</strong></div>
+                <div class="preview-kpi"><span>Products</span><strong>10</strong></div>
+                <div class="preview-kpi alerting"><span>Low stock</span><strong>1</strong></div>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-7">
+                  <div class="preview-panel h-100">
+                    <h3>Value by category</h3>
+                    <div>
+                      <div class="preview-row"><span>Electronics</span><span>60%</span></div>
+                      <div class="preview-track"><span style="width: 60%"></span></div>
+                    </div>
+                    <div>
+                      <div class="preview-row"><span>Furniture</span><span>33%</span></div>
+                      <div class="preview-track"><span style="width: 33%"></span></div>
+                    </div>
+                    <div>
+                      <div class="preview-row"><span>Supplies</span><span>7%</span></div>
+                      <div class="preview-track"><span style="width: 7%"></span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-5">
+                  <div class="preview-panel h-100">
+                    <h3>Needs attention</h3>
+                    <div class="preview-item">
+                      <div>Webcam 1080p<small>SKU008 · 3 left</small></div>
+                      <span class="pill pill-low">Low</span>
+                    </div>
+                    <div class="preview-item">
+                      <div>Monitor 27"<small>SKU006 · 8 left</small></div>
+                      <span class="pill pill-watch">Watch</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h4>Real-time Analytics</h4>
-            <p class="text-secondary">Get instant insights into your inventory levels, trends, and performance metrics with powerful dashboards.</p>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-bell"></i>
-            </div>
-            <h4>Smart Alerts</h4>
-            <p class="text-secondary">Never run out of stock with intelligent low-stock warnings and automated reorder suggestions.</p>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-users"></i>
-            </div>
-            <h4>Team Collaboration</h4>
-            <p class="text-secondary">Work seamlessly with your team with role-based access control and real-time updates.</p>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-file-import"></i>
-            </div>
-            <h4>Bulk Import/Export</h4>
-            <p class="text-secondary">Import orders from CSV, JSON, or Excel. Export reports in multiple formats with one click.</p>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-shield-alt"></i>
-            </div>
-            <h4>Enterprise Security</h4>
-            <p class="text-secondary">Your data is protected with SSL encryption, secure sessions, and regular backups.</p>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="600">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-mobile-alt"></i>
-            </div>
-            <h4>Mobile Ready</h4>
-            <p class="text-secondary">Access your inventory from anywhere with our responsive design that works on all devices.</p>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Stats Section -->
-  <section class="stats-section py-5">
-    <div class="container">
-      <div class="row g-4">
-        <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="100">
-          <div class="stat-card">
-            <div class="stat-number" data-count="500">0</div>
-            <div class="stat-label">Active Warehouses</div>
-          </div>
+    <section id="features">
+      <div class="container">
+        <div class="section-head">
+          <h2>Everything a small warehouse needs</h2>
+          <p>One place for stock, orders and shipments, shared by your whole team.</p>
         </div>
-        <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200">
-          <div class="stat-card">
-            <div class="stat-number" data-count="50000">0</div>
-            <div class="stat-label">Items Tracked Daily</div>
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-warehouse" aria-hidden="true"></i></div>
+              <h3>Shared warehouses</h3>
+              <p>An admin creates a warehouse and sets a join password. Staff join with it and see the same stock.</p>
+            </div>
           </div>
-        </div>
-        <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
-          <div class="stat-card">
-            <div class="stat-number" data-count="99">0</div>
-            <div class="stat-label">% Uptime</div>
+          <div class="col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></div>
+              <h3>Low-stock warnings</h3>
+              <p>Give each item its own warning level. Items at or near it show up on the dashboard and in the low stock report.</p>
+            </div>
           </div>
-        </div>
-        <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="400">
-          <div class="stat-card">
-            <div class="stat-number" data-count="24">0</div>
-            <div class="stat-label">Hour Support</div>
+          <div class="col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-file-import" aria-hidden="true"></i></div>
+              <h3>Import orders</h3>
+              <p>Upload incoming orders as CSV or JSON. Confirm an order when it arrives and the stock is added for you.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-truck" aria-hidden="true"></i></div>
+              <h3>Exports to other sites</h3>
+              <p>Ship stock to another location. Quantities come off your inventory and the export is kept on record.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+              <h3>Reports</h3>
+              <p>See stock value, imports and exports for any date range, and download the inventory report as a PDF.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-history" aria-hidden="true"></i></div>
+              <h3>Full audit trail</h3>
+              <p>Every add, edit, removal, import and export is logged with the person who did it and when.</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- About Section -->
-  <section id="about" class="py-5">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-lg-6" data-aos="fade-right">
-          <h2 class="display-4 fw-bold mb-4">Built for Modern Businesses</h2>
-          <p class="lead text-secondary mb-4">
-            Investorage combines powerful inventory management with intuitive design, making it easy for teams of all sizes to stay organized and efficient.
-          </p>
-          <div class="d-flex align-items-start mb-4">
-            <div class="me-3">
-              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                <i class="fas fa-check text-primary"></i>
-              </div>
-            </div>
-            <div>
-              <h5>Easy Setup</h5>
-              <p class="text-secondary">Get started in minutes with our intuitive onboarding process</p>
-            </div>
-          </div>
-          <div class="d-flex align-items-start mb-4">
-            <div class="me-3">
-              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                <i class="fas fa-check text-primary"></i>
-              </div>
-            </div>
-            <div>
-              <h5>Scalable Solution</h5>
-              <p class="text-secondary">From small warehouses to enterprise operations, we grow with you</p>
-            </div>
-          </div>
-          <div class="d-flex align-items-start">
-            <div class="me-3">
-              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                <i class="fas fa-check text-primary"></i>
-              </div>
-            </div>
-            <div>
-              <h5>24/7 Support</h5>
-              <p class="text-secondary">Our team is always here to help you succeed</p>
-            </div>
-          </div>
+    <section id="how">
+      <div class="container">
+        <div class="section-head">
+          <h2>Up and running in three steps</h2>
+          <p>No setup calls, no spreadsheets to migrate.</p>
         </div>
-        <div class="col-lg-6" data-aos="fade-left">
-          <div class="modern-card p-5">
-            <div class="row g-4 text-center">
-              <div class="col-6">
-                <i class="fas fa-box-open fa-3x text-primary mb-3"></i>
-                <h5>Smart Inventory</h5>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="step">
+              <span class="step-num">1</span>
+              <div>
+                <h3>Create your warehouse</h3>
+                <p>Sign up as an admin, name your warehouse and choose the password your team will use to join.</p>
               </div>
-              <div class="col-6">
-                <i class="fas fa-sync fa-3x text-primary mb-3"></i>
-                <h5>Auto Sync</h5>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="step">
+              <span class="step-num">2</span>
+              <div>
+                <h3>Add your stock</h3>
+                <p>Enter items one by one, or import an order file to bring a batch in at once.</p>
               </div>
-              <div class="col-6">
-                <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
-                <h5>Analytics</h5>
-              </div>
-              <div class="col-6">
-                <i class="fas fa-lock fa-3x text-primary mb-3"></i>
-                <h5>Secure</h5>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="step">
+              <span class="step-num">3</span>
+              <div>
+                <h3>Let it watch for you</h3>
+                <p>The dashboard flags what's running low and the log shows every change your team makes.</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Pricing Section -->
-  <section id="pricing" class="py-5 bg-dark">
-    <div class="container">
-      <div class="text-center mb-5" data-aos="fade-up">
-        <h2 class="display-4 fw-bold">Simple, Transparent Pricing</h2>
-        <p class="lead text-secondary">Choose the plan that fits your busines (THIS IS JUST A PERSONAL PROJECT THERE ARE NO SUBSCRIPTIONS OR FEES).</p>
-      </div>
-      
-      <div class="row g-4 align-items-center">
-        <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-          <div class="pricing-card">
-            <h4 class="mb-4">Starter</h4>
-            <div class="display-4 fw-bold mb-4">$29<small class="fs-6 fw-normal text-secondary">/month</small></div>
-            <ul class="list-unstyled mb-4">
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Up to 1,000 SKUs</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> 3 Team Members</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Basic Reports</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Email Support</li>
-            </ul>
-            <a href="logInSignUp.php" class="btn btn-outline-primary w-100">Get Started</a>
-          </div>
-        </div>
-        
-        <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
-          <div class="pricing-card featured">
-            <span class="pricing-badge">Most Popular</span>
-            <h4 class="mb-4">Professional</h4>
-            <div class="display-4 fw-bold mb-4">$79<small class="fs-6 fw-normal text-secondary">/month</small></div>
-            <ul class="list-unstyled mb-4">
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Up to 10,000 SKUs</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> 10 Team Members</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Advanced Analytics</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Priority Support</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> API Access</li>
-            </ul>
-            <a href="logInSignUp.php" class="btn btn-primary w-100">Get Started</a>
-          </div>
-        </div>
-        
-        <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
-          <div class="pricing-card">
-            <h4 class="mb-4">Enterprise</h4>
-            <div class="display-4 fw-bold mb-4">Custom</div>
-            <ul class="list-unstyled mb-4">
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Unlimited SKUs</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Unlimited Users</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Custom Features</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> Dedicated Support</li>
-              <li class="mb-3"><i class="fas fa-check text-success me-2"></i> On-Premise Option</li>
-            </ul>
-            <a href="#" class="btn btn-outline-primary w-100">Contact Sales</a>
+    <section>
+      <div class="container">
+        <div class="cta">
+          <h2>See it with real-looking data</h2>
+          <p class="lede">The demo opens a warehouse with sample items, orders and an export already in it.</p>
+          <div class="hero-actions">
+            <a href="createDemoAccount.php" class="btn btn-primary btn-lg"><i class="fas fa-play" aria-hidden="true"></i> Try the demo</a>
+            <a href="logInSignUp.php" class="btn btn-secondary btn-lg">Create an account</a>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="cta-section py-5">
-    <div class="container text-center position-relative" data-aos="fade-up">
-      <h2 class="display-4 fw-bold mb-4">Ready to Transform Your Warehouse?</h2>
-      <p class="lead text-secondary mb-5">Join thousands of businesses already using Investorage</p>
-      <div class="d-flex justify-content-center gap-3">
-        <a href="logInSignUp.php" class="btn btn-primary btn-lg">
-          <i class="fas fa-rocket"></i> Start Free Trial
-        </a>
-        <a href="createDemoAccount.php" class="btn btn-warning btn-lg">
-          <i class="fas fa-play-circle"></i> Try Demo
-        </a>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <?php echo $footer; ?>
-
-  <!-- Counter Animation Script -->
-  <script>
-    // Number counter animation
-    const counters = document.querySelectorAll('.stat-number');
-    const speed = 200;
-
-    const countUp = (counter) => {
-      const target = +counter.getAttribute('data-count');
-      const count = +counter.innerText;
-      const increment = target / speed;
-
-      if (count < target) {
-        counter.innerText = Math.ceil(count + increment);
-        setTimeout(() => countUp(counter), 10);
-      } else {
-        counter.innerText = target + (counter.parentElement.textContent.includes('%') ? '%' : '+');
-      }
-    };
-
-    // Intersection Observer for counter animation
-    const observerOptions = {
-      threshold: 0.5
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const counter = entry.target;
-          countUp(counter);
-          observer.unobserve(counter);
-        }
-      });
-    }, observerOptions);
-
-    counters.forEach(counter => observer.observe(counter));
-  </script>
 </body>
 </html>

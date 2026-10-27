@@ -120,195 +120,99 @@ $conn->close();
     <title>Inventory Search - Modern Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #0f0f23;
-            --bg-secondary: #1a1a2e;
-            --bg-tertiary: #16213e;
-            --accent-primary: #0066ff;
-            --accent-secondary: #4da6ff;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --text-muted: #666666;
-            --border-color: #2a2a3e;
-            --success-color: #00ff88;
-            --warning-color: #ffaa00;
-            --danger-color: #ff4444;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            --border-radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
+        /* Page styles; colors come from the shared tokens in indexElements.php */
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+            max-width: none;
+            margin: 0;
+            padding: 28px 40px 48px;
         }
 
         .header {
             display: flex;
-            align-items: center;
-            justify-content: between;
-            margin-bottom: 2rem;
-            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin: 0;
+            font-size: 1.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            margin: 0 0 4px;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
         }
 
         .search-panel {
-            background: var(--bg-tertiary);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            padding: 20px;
             border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: var(--card-bg);
         }
 
         .search-form {
             display: grid;
-            gap: 1.5rem;
-        }
-
-        .search-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 1rem;
-            align-items: end;
+            gap: 16px;
         }
 
         .filters-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 6px;
         }
 
         .form-label {
-            font-weight: 600;
+            margin: 0;
+            font-size: 0.8125rem;
+            font-weight: 500;
             color: var(--text-secondary);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-control, .form-select {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.875rem 1rem;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: var(--transition);
-            outline: none;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
-        }
-
-        .form-control::placeholder {
-            color: var(--text-muted);
         }
 
         .search-input-group {
-            position: relative;
             display: flex;
+            gap: 8px;
         }
 
         .search-input-group .form-control {
-            border-radius: 8px 0 0 8px;
-            border-right: none;
-        }
-
-        .btn {
-            padding: 0.875rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border: 2px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border-color);
-            color: var(--text-primary);
+            flex: 1;
+            min-width: 0;
         }
 
         .results-panel {
-            background: var(--bg-tertiary);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: var(--card-bg);
             overflow: hidden;
         }
 
         .results-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border-color);
             display: flex;
-            justify-content: between;
-            align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .results-info {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
         }
 
         .results-count {
             font-weight: 600;
-            color: var(--accent-primary);
+            color: var(--text-primary);
         }
 
         .table-responsive {
@@ -317,143 +221,170 @@ $conn->close();
 
         .table {
             width: 100%;
+            min-width: 900px;
+            margin: 0;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
         }
 
-        .table th {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-secondary);
+        .table > :not(caption) > * > * {
+            padding: 14px 16px;
+            background: transparent;
+            color: var(--text-primary);
             border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            cursor: pointer;
-            transition: var(--transition);
+            box-shadow: none;
+            vertical-align: middle;
+        }
+
+        .table > thead > tr > th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
             user-select: none;
         }
 
-        .table th:hover {
-            background: var(--border-color);
+        .table th.sortable {
+            cursor: pointer;
+        }
+
+        .table > thead > tr > th.sortable:hover {
             color: var(--text-primary);
         }
 
         .table th.sortable::after {
             content: '\f0dc';
             font-family: 'Font Awesome 6 Free';
-            margin-left: 0.5rem;
-            opacity: 0.3;
+            font-weight: 900;
+            margin-left: 6px;
+            opacity: 0.35;
         }
 
         .table th.sort-asc::after {
             content: '\f0de';
             opacity: 1;
-            color: var(--accent-primary);
+            color: var(--link-color);
         }
 
         .table th.sort-desc::after {
             content: '\f0dd';
             opacity: 1;
-            color: var(--accent-primary);
+            color: var(--link-color);
         }
 
-        .table td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            transition: var(--transition);
+        .table > tbody > tr:hover > * {
+            background: var(--card-hover);
         }
 
-        .table tbody tr:hover {
-            background: rgba(0, 102, 255, 0.05);
+        .table > tbody > tr:last-child > * {
+            border-bottom: 0;
         }
 
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .item-name {
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: rgba(0, 102, 255, 0.2);
-            color: var(--accent-primary);
         }
 
-        .status-instock, .status-in-stock { background: rgba(0, 255, 136, 0.2); color: var(--success-color); }
-        .status-ordered { background: rgba(255, 170, 0, 0.2); color: var(--warning-color); }
-        .status-backordered, .status-back-ordered { background: rgba(255, 68, 68, 0.2); color: var(--danger-color); }
-        .status-reserved { background: rgba(0, 102, 255, 0.2); color: var(--accent-primary); }
-        .status-dropped, .status-discontinued { background: rgba(102, 102, 102, 0.2); color: var(--text-muted); }
-        .status-low-stock { background: rgba(255, 68, 68, 0.2); color: var(--danger-color); }
-        .status-out-of-stock { background: rgba(255, 68, 68, 0.2); color: var(--danger-color); }
+        .item-sku {
+            margin-top: 2px;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
 
-        .stock-indicator {
+        .table > tbody > tr > .item-desc {
+            max-width: 320px;
+            color: var(--text-secondary);
+        }
+
+        .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .stock-cell {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 12px;
         }
 
-        .stock-low { color: var(--danger-color); }
-        .stock-medium { color: var(--warning-color); }
-        .stock-good { color: var(--success-color); }
+        .stock-cell .num {
+            width: 40px;
+        }
+
+        .stock-bar {
+            flex: none;
+            width: 96px;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+        }
+
+        .stock-bar span {
+            display: block;
+            height: 6px;
+            border-radius: 3px;
+        }
 
         .pagination {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 2rem;
-            margin-top: 1rem;
+            gap: 6px;
+            margin: 0;
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
         }
 
         .page-btn {
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
+            min-width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             color: var(--text-secondary);
-            text-decoration: none;
-            transition: var(--transition);
-            font-size: 0.9rem;
+            font-size: 0.875rem;
         }
 
-        .page-btn:hover, .page-btn.active {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
+        .page-btn:hover {
+            color: var(--text-primary);
+            border-color: #3A4352;
         }
 
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .page-btn.active {
+            background: var(--accent-strong);
+            border-color: var(--accent-strong);
+            color: #fff;
         }
 
         .empty-state {
+            padding: 56px 24px;
             text-align: center;
-            padding: 4rem 2rem;
             color: var(--text-muted);
         }
 
         .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
+            margin-bottom: 12px;
+            font-size: 2.5rem;
+            opacity: 0.4;
+        }
+
+        .empty-state h3 {
+            font-size: 1.125rem;
+            color: var(--text-primary);
         }
 
         .loading {
             opacity: 0.6;
             pointer-events: none;
-            transition: var(--transition);
         }
 
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .search-row { grid-template-columns: 1fr; }
-            .filters-row { grid-template-columns: 1fr; }
-            .results-header { flex-direction: column; align-items: flex-start; }
-            .table { font-size: 0.8rem; }
-            .table th, .table td { padding: 0.75rem 0.5rem; }
+        @media (max-width: 767.98px) {
+            .container { padding: 20px 16px 40px; }
         }
     </style>
 </head>
@@ -463,14 +394,19 @@ $conn->close();
 
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-search"></i> Inventory Search</h1>
+            <div style="flex: 1 1 280px; min-width: 0">
+                <p>All items in your warehouse</p>
+                <h1>Inventory</h1>
+            </div>
+            <a href="warehouseExport.php" class="btn btn-secondary"><i class="fas fa-truck" aria-hidden="true"></i> Export</a>
+            <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
         </div>
 
         <div class="search-panel">
             <form method="GET" class="search-form" id="searchForm">
                 <div class="search-row">
                     <div class="form-group">
-                        <label class="form-label">Search Products</label>
+                        <label class="form-label" for="searchInput">Search products</label>
                         <div class="search-input-group">
                             <input type="text" 
                                    name="search" 
@@ -553,18 +489,15 @@ $conn->close();
                     <table class="table">
                         <thead>
                             <tr>
-                                <th class="sortable" data-sort="SKU">
-                                    SKU
-                                </th>
                                 <th class="sortable" data-sort="Name">
-                                    Name
+                                    Product
                                 </th>
                                 <th class="sortable" data-sort="Category">
                                     Category
                                 </th>
                                 <th>Description</th>
-                                <th class="sortable" data-sort="SalesPrice">
-                                    Sales Price
+                                <th class="sortable num" data-sort="SalesPrice">
+                                    Price
                                 </th>
                                 <th class="sortable" data-sort="Status">
                                     Status
@@ -572,42 +505,51 @@ $conn->close();
                                 <th class="sortable" data-sort="Stock">
                                     Stock
                                 </th>
-                                <th>Low Stock Alert</th>
+                                <th>Health</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($results as $item): 
+                            <?php
+                            // Status values set by the add/import forms
+                            $statusPills = [
+                                'in-stock'    => 'pill-ok',
+                                'ordered'     => 'pill-watch',
+                                'backordered' => 'pill-low',
+                                'reserved'    => 'pill-info',
+                            ];
+                            foreach ($results as $item):
                                 $stockLevel = (int)$item['Stock'];
                                 $lowStockThreshold = (int)$item['LowStockWarning'];
-                                $stockClass = 'stock-good';
-                                $stockIcon = 'fa-check-circle';
-                                
+                                $description = $item['Description'] ?? '';
+
+                                // Same window as the low stock report: at/below the warning level, or within 10 of it
                                 if ($stockLevel <= $lowStockThreshold) {
-                                    $stockClass = 'stock-low';
-                                    $stockIcon = 'fa-exclamation-triangle';
-                                } elseif ($stockLevel <= $lowStockThreshold * 1.5) {
-                                    $stockClass = 'stock-medium';
-                                    $stockIcon = 'fa-exclamation-circle';
+                                    [$healthLabel, $healthPill, $barColor] = ['Low', 'pill-low', 'var(--danger-color)'];
+                                } elseif ($stockLevel <= $lowStockThreshold + 10) {
+                                    [$healthLabel, $healthPill, $barColor] = ['Watch', 'pill-watch', 'var(--warning-color)'];
+                                } else {
+                                    [$healthLabel, $healthPill, $barColor] = ['Healthy', 'pill-ok', 'var(--primary-color)'];
                                 }
+                                // Bar is full at 4x the warning level
+                                $barPct = min(100, max(4, round($stockLevel / max(1, $lowStockThreshold * 4) * 100)));
+                                $statusPill = $statusPills[strtolower($item['Status'] ?? '')] ?? 'pill-info';
                             ?>
                                 <tr>
-                                    <td><strong><?php echo htmlspecialchars($item['SKU']); ?></strong></td>
-                                    <td><?php echo htmlspecialchars($item['Name']); ?></td>
-                                    <td><?php echo htmlspecialchars($item['Category']); ?></td>
-                                    <td><?php echo htmlspecialchars(substr($item['Description'], 0, 100)) . (strlen($item['Description']) > 100 ? '...' : ''); ?></td>
-                                    <td><strong>$<?php echo number_format($item['SalesPrice'], 2); ?></strong></td>
                                     <td>
-                                        <span class="status-badge status-<?php echo strtolower(str_replace([' ', '_'], '-', $item['Status'])); ?>">
-                                            <?php echo htmlspecialchars($item['Status']); ?>
-                                        </span>
+                                        <div class="item-name"><?php echo htmlspecialchars($item['Name']); ?></div>
+                                        <div class="item-sku"><?php echo htmlspecialchars($item['SKU']); ?></div>
                                     </td>
+                                    <td><?php echo htmlspecialchars($item['Category']); ?></td>
+                                    <td class="item-desc"><?php echo htmlspecialchars(substr($description, 0, 80)) . (strlen($description) > 80 ? '…' : ''); ?></td>
+                                    <td class="num">$<?php echo number_format($item['SalesPrice'], 2); ?></td>
+                                    <td><span class="pill <?php echo $statusPill; ?>"><?php echo htmlspecialchars($item['Status']); ?></span></td>
                                     <td>
-                                        <div class="stock-indicator <?php echo $stockClass; ?>">
-                                            <i class="fas <?php echo $stockIcon; ?>"></i>
-                                            <?php echo htmlspecialchars($item['Stock']); ?>
+                                        <div class="stock-cell">
+                                            <span class="num"><?php echo $stockLevel; ?></span>
+                                            <span class="stock-bar" aria-hidden="true"><span style="width: <?php echo $barPct; ?>%; background: <?php echo $barColor; ?>"></span></span>
                                         </div>
                                     </td>
-                                    <td><?php echo htmlspecialchars($item['LowStockWarning']); ?></td>
+                                    <td><span class="pill <?php echo $healthPill; ?>" title="Warning level: <?php echo $lowStockThreshold; ?>"><?php echo $healthLabel; ?></span></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

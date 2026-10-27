@@ -15,19 +15,19 @@ ini_set('display_errors', 1);
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f0f23;
-            --bg-secondary: #1a1a2e;
-            --bg-tertiary: #16213e;
-            --accent-primary: #0066ff;
-            --accent-secondary: #4da6ff;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --text-muted: #666666;
-            --border-color: #2a2a3e;
-            --success-color: #00ff88;
-            --warning-color: #ffaa00;
-            --danger-color: #ff4444;
-            --info-color: #00aaff;
+            --bg-primary: #0E1116;
+            --bg-secondary: #12161C;
+            --bg-tertiary: #161A21;
+            --accent-primary: #4A86C5;
+            --accent-secondary: #6EA8DE;
+            --text-primary: #E6E9EE;
+            --text-secondary: #9AA4B2;
+            --text-muted: #8A94A3;
+            --border-color: #262C36;
+            --success-color: #4CB782;
+            --warning-color: #E0A23B;
+            --danger-color: #E5676B;
+            --info-color: #6EA8DE;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             --border-radius: 12px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -40,7 +40,7 @@ ini_set('display_errors', 1);
         }
 
         body {
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            background: var(--bg-primary);
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;

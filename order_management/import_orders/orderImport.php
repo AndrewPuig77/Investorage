@@ -19,7 +19,7 @@ if (!isset($_SESSION["userID"])) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      background-color: #1f1f1f;
+      background-color: var(--dark-bg);
       color: #ffffff;
     }
 

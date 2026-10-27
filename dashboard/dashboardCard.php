@@ -102,408 +102,454 @@ while ($row = $result->fetch_assoc()) {
 }
 $query->close();
 
+// Units on hand
+$query = $conn->prepare("SELECT COALESCE(SUM(Stock), 0) as total FROM Inventory WHERE GroupID = ?");
+$query->bind_param("i", $GroupID);
+$query->execute();
+$stats['totalUnits'] = $query->get_result()->fetch_assoc()['total'];
+$query->close();
+
+// Items within 10 units of their low-stock level (same window as lowStockWarning_logic.php)
+$query = $conn->prepare("SELECT COUNT(*) as total FROM Inventory WHERE GroupID = ? AND Stock > LowStockWarning AND Stock <= LowStockWarning + 10");
+$query->bind_param("i", $GroupID);
+$query->execute();
+$stats['watchStock'] = $query->get_result()->fetch_assoc()['total'];
+$query->close();
+
+// Value of pending orders
+$query = $conn->prepare("
+    SELECT COALESCE(SUM(o.TotalAmount), 0) as total
+    FROM Orders o
+    INNER JOIN RoleAccess r ON o.UserID = r.UserID
+    WHERE r.GroupID = ? AND o.OrderStatus = 'pending'
+");
+$query->bind_param("i", $GroupID);
+$query->execute();
+$stats['pendingValue'] = $query->get_result()->fetch_assoc()['total'];
+$query->close();
+
+// Value by category
+$categories = [];
+$query = $conn->prepare("
+    SELECT COALESCE(NULLIF(Category, ''), 'Uncategorized') as Category,
+           SUM(Stock * SalesPrice) as value
+    FROM Inventory
+    WHERE GroupID = ?
+    GROUP BY COALESCE(NULLIF(Category, ''), 'Uncategorized')
+    ORDER BY value DESC
+    LIMIT 5
+");
+$query->bind_param("i", $GroupID);
+$query->execute();
+$result = $query->get_result();
+while ($row = $result->fetch_assoc()) {
+    $categories[] = $row;
+}
+$query->close();
+$categoryCount = count($categories);
+
+// Items that need attention, lowest relative to their warning level first
+$attention = [];
+$query = $conn->prepare("
+    SELECT SKU, Name, Stock, LowStockWarning
+    FROM Inventory
+    WHERE GroupID = ? AND Stock <= LowStockWarning + 10
+    ORDER BY (Stock - LowStockWarning) ASC
+    LIMIT 4
+");
+$query->bind_param("i", $GroupID);
+$query->execute();
+$result = $query->get_result();
+while ($row = $result->fetch_assoc()) {
+    $attention[] = $row;
+}
+$query->close();
+
+// Label and pill style for each audit-log change type
+$activityStyles = [
+    'add'             => ['Add', 'pill-ok'],
+    'updateInventory' => ['Update', 'pill-info'],
+    'removeAll'       => ['Removed', 'pill-low'],
+    'removeSelected'  => ['Removed', 'pill-low'],
+    'import'          => ['Import', 'pill-watch'],
+    'confirmImport'   => ['Import', 'pill-watch'],
+    'export'          => ['Export', 'pill-info'],
+];
+
+$hour = (int) date('G');
+$greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+
 ?>
 
 <style>
 /* Dashboard Specific Styles */
-.dashboard-container {
-    padding-top: 100px;
-    min-height: 100vh;
+.dash {
+    padding: 28px 40px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.welcome-banner {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-    border-radius: 20px;
-    padding: 3rem;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
+.dash-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
 }
 
-.welcome-banner::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
-    animation: rotate 20s linear infinite;
+.dash-header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+.dash-eyebrow {
+    margin: 0 0 4px;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
 }
 
-.stat-card {
-    background: var(--card-bg);
-    border-radius: 20px;
-    padding: 2rem;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border-color: var(--primary-color);
-}
-
-.stat-card.primary {
-    border-top: 4px solid var(--primary-color);
-}
-
-.stat-card.success {
-    border-top: 4px solid var(--success-color);
-}
-
-.stat-card.warning {
-    border-top: 4px solid var(--warning-color);
-}
-
-.stat-card.info {
-    border-top: 4px solid var(--info-color);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 15px;
+.dash-search {
+    flex: 0 1 320px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    gap: 10px;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-muted);
 }
 
-.stat-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    color: var(--text-secondary);
+.dash-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text-primary);
     font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
-.quick-actions {
+.kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: 16px;
 }
 
-.action-btn {
+.kpi {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
     background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 15px;
-    padding: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    color: var(--text-primary);
 }
 
-.action-btn:hover {
-    border-color: var(--primary-color);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(70, 130, 180, 0.2);
-    color: var(--text-primary);
+.kpi:hover {
+    border-color: #3A4352;
 }
 
-.action-btn i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    display: block;
+.kpi-label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
 }
 
-.activity-feed {
+.kpi-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.kpi-note {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.kpi.alerting {
+    border-color: #3A2A2C;
+    background: #1B1719;
+}
+
+.kpi.alerting .kpi-label {
+    color: #F5999B;
+}
+
+.panel-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.panel {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
     background: var(--card-bg);
-    border-radius: 20px;
-    padding: 2rem;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
-.activity-item {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    transition: background 0.3s ease;
+.panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
 }
 
-.activity-item:last-child {
-    border-bottom: none;
+.panel-head h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
-.activity-item:hover {
+.panel-head a {
+    font-size: 0.8125rem;
+}
+
+.bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bar-row-text {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.875rem;
+}
+
+.bar-track {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border-color);
+}
+
+.bar-fill {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--primary-color);
+}
+
+.attention-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 10px;
     background: var(--card-hover);
 }
 
-.activity-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+.attention-item p {
+    margin: 0;
+}
+
+.mono {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.activity-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.activity-table th {
+    padding: 0 12px 12px;
+    text-align: left;
     font-size: 0.75rem;
     font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.activity-table td {
+    padding: 14px 12px;
+    border-top: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.activity-table th:first-child,
+.activity-table td:first-child {
+    padding-left: 0;
+}
+
+.muted {
+    color: var(--text-secondary);
+}
+
+.empty-note {
+    margin: 0;
+    padding: 24px 0;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+@media (max-width: 767.98px) {
+    .dash {
+        padding: 20px 16px 40px;
+    }
 }
 </style>
 
-<div class="dashboard-container">
-    <div class="container">
-        <?php if ($showDemoWelcome): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <h4 class="alert-heading"><i class="fas fa-rocket"></i> Welcome to Your Demo Account!</h4>
-            <p>You're now logged into a fully functional demo account with:</p>
-            <ul>
-                <li>10 pre-loaded inventory items</li>
-                <li>Sample import orders (pending and completed)</li>
-                <li>Sample export order history</li>
-                <li>Full admin access to test all features</li>
-            </ul>
-            <hr>
-            <p class="mb-0">Feel free to explore all features. This demo account will be automatically deleted after your session ends.</p>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <?php endif; ?>
-
-        <?php if ($showNewUserWelcome): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <h4 class="alert-heading"><i class="fas fa-check-circle"></i> Welcome to Investorage!</h4>
-            <p>Your account has been successfully created and you're now logged in.</p>
-            <p>You can start by:</p>
-            <ul>
-                <li>Adding inventory items to your warehouse</li>
-                <li>Importing orders from CSV or JSON files</li>
-                <li>Managing your stock levels and generating reports</li>
-                <li>Setting up low stock warnings</li>
-            </ul>
-            <hr>
-            <p class="mb-0">Need help? Check out our <a href="help.php" class="alert-link">documentation</a>.</p>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <?php endif; ?>
-
-        <?php if ($isDemoAccount && !$showDemoWelcome): ?>
-        <div class="alert alert-info" role="alert">
-            <i class="fas fa-info-circle"></i> You are using a demo account. 
-            <a href="logInSignUp.php" class="alert-link">Create a real account</a> to save your data permanently.
-        </div>
-        <?php endif; ?>
-
-        <!-- Welcome Banner -->
-        <div class="welcome-banner" data-aos="fade-down">
-            <div class="stat-card info" data-aos="zoom-in" data-aos-delay="300">
-                <div class="stat-icon bg-info bg-opacity-10 text-info">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-value"><?php echo number_format($stats['pendingOrders']); ?></div>
-                <div class="stat-label">Pending Orders</div>
-                <a href="orderManagement.php" class="stretched-link"></a>
-            </div>
-
-            <div class="stat-card success" data-aos="zoom-in" data-aos-delay="400">
-                <div class="stat-icon bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-                <div class="stat-value">$<?php echo number_format($stats['totalValue'], 0); ?></div>
-                <div class="stat-label">Inventory Value</div>
-                <a href="inventoryReport.php" class="stretched-link"></a>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <h3 class="mb-4" data-aos="fade-up">Quick Actions</h3>
-        <div class="quick-actions" data-aos="fade-up" data-aos-delay="100">
-            <a href="addInventory.php" class="action-btn">
-                <i class="fas fa-plus-circle text-success"></i>
-                <h5>Add Inventory</h5>
-                <small class="text-secondary">Add new products</small>
-            </a>
-            
-            <a href="orderImport.php" class="action-btn">
-                <i class="fas fa-file-import text-primary"></i>
-                <h5>Import Orders</h5>
-                <small class="text-secondary">Bulk import CSV/JSON</small>
-            </a>
-            
-            <a href="inventoryReport.php" class="action-btn">
-                <i class="fas fa-chart-bar text-info"></i>
-                <h5>View Reports</h5>
-                <small class="text-secondary">Analytics & insights</small>
-            </a>
-            
-            <a href="warehouseExport.php" class="action-btn">
-                <i class="fas fa-truck text-warning"></i>
-                <h5>Export Inventory</h5>
-                <small class="text-secondary">Ship to locations</small>
-            </a>
-            
-            <a href="changeInventory.php" class="action-btn">
-                <i class="fas fa-edit text-primary"></i>
-                <h5>Update Stock</h5>
-                <small class="text-secondary">Modify inventory</small>
-            </a>
-            
-            <a href="removeInventory.php" class="action-btn">
-                <i class="fas fa-trash text-danger"></i>
-                <h5>Remove Items</h5>
-                <small class="text-secondary">Delete inventory</small>
-            </a>
-            
-            <a href="lowstockReport.php" class="action-btn">
-                <i class="fas fa-exclamation-triangle text-warning"></i>
-                <h5>Low Stock</h5>
-                <small class="text-secondary">Items to reorder</small>
-            </a>
-            
-            <a href="searchInventory.php" class="action-btn">
-                <i class="fas fa-search text-info"></i>
-                <h5>Search Items</h5>
-                <small class="text-secondary">Find products</small>
-            </a>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="row mt-4">
-            <div class="col-lg-8" data-aos="fade-right">
-                <h3 class="mb-4">Recent Activity</h3>
-                <div class="activity-feed">
-                    <?php if (empty($recentActivity)): ?>
-                        <p class="text-center text-secondary py-5">No recent activity</p>
-                    <?php else: ?>
-                        <?php foreach ($recentActivity as $activity): 
-                            $badgeColor = 'primary';
-                            $icon = 'fas fa-circle';
-                            
-                            switch($activity['ChangeType']) {
-                                case 'add':
-                                    $badgeColor = 'success';
-                                    $icon = 'fas fa-plus';
-                                    break;
-                                case 'updateInventory':
-                                    $badgeColor = 'info';
-                                    $icon = 'fas fa-edit';
-                                    break;
-                                case 'removeAll':
-                                case 'removeSelected':
-                                    $badgeColor = 'danger';
-                                    $icon = 'fas fa-trash';
-                                    break;
-                                case 'import':
-                                case 'confirmImport':
-                                    $badgeColor = 'primary';
-                                    $icon = 'fas fa-download';
-                                    break;
-                                case 'export':
-                                    $badgeColor = 'warning';
-                                    $icon = 'fas fa-upload';
-                                    break;
-                            }
-                        ?>
-                        <div class="activity-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <span class="activity-badge bg-<?php echo $badgeColor; ?> bg-opacity-10 text-<?php echo $badgeColor; ?>">
-                                        <i class="<?php echo $icon; ?> me-1"></i>
-                                        <?php echo htmlspecialchars($activity['ChangeType']); ?>
-                                    </span>
-                                    <p class="mb-1 mt-2">
-                                        <strong><?php echo htmlspecialchars($activity['userName']); ?></strong>
-                                        - SKU: <?php echo htmlspecialchars($activity['SKU']); ?>
-                                    </p>
-                                    <small class="text-secondary">
-                                        <?php echo htmlspecialchars(substr($activity['NewValue'], 0, 100)); ?>
-                                        <?php echo strlen($activity['NewValue']) > 100 ? '...' : ''; ?>
-                                    </small>
-                                </div>
-                                <small class="text-secondary">
-                                    <?php echo date('M d, H:i', strtotime($activity['CreatedAt'])); ?>
-                                </small>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
-            
-            <div class="col-lg-4" data-aos="fade-left">
-                <h3 class="mb-4">System Status</h3>
-                <div class="modern-card">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                            <i class="fas fa-check-circle text-success"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">System Online</h6>
-                            <small class="text-secondary">All services operational</small>
-                        </div>
-                    </div>
-                    
-                    <hr class="my-3">
-                    
-                    <h6 class="mb-3">Quick Stats</h6>
-                    <div class="mb-3">
-                        <small class="text-secondary d-block">Storage Used</small>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-primary" style="width: <?php echo min(($stats['totalItems'] / 10000) * 100, 100); ?>%"></div>
-                        </div>
-                        <small class="text-secondary"><?php echo $stats['totalItems']; ?> / 10,000 items</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <small class="text-secondary d-block">Low Stock Items</small>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: <?php echo $stats['totalItems'] > 0 ? ($stats['lowStock'] / $stats['totalItems']) * 100 : 0; ?>%"></div>
-                        </div>
-                        <small class="text-secondary"><?php echo $stats['lowStock']; ?> items need attention</small>
-                    </div>
-                    
-                    <hr class="my-3">
-                    
-                    <div class="text-center">
-                        <a href="help.php" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-question-circle"></i> Need Help?
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+<main class="dash">
+    <?php if ($showDemoWelcome): ?>
+    <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
+        <h4 class="alert-heading h5"><i class="fas fa-rocket"></i> Welcome to your demo account</h4>
+        <p class="mb-2">It comes with 10 sample items, an import order (pending and completed), an export order, and full admin access.</p>
+        <p class="mb-0">Explore everything. The demo account is deleted when you sign out.</p>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-</div>position-relative">
-                <h1 class="display-4 text-white fw-bold mb-3">
-                    Welcome back, <?php echo htmlspecialchars($_SESSION["userName"]); ?>!
-                </h1>
-                <p class="lead text-white opacity-75">
-                    Here's what's happening with your inventory today
-                </p>
-            </div>
+    <?php endif; ?>
+
+    <?php if ($showNewUserWelcome): ?>
+    <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
+        <h4 class="alert-heading h5"><i class="fas fa-check-circle"></i> Welcome to Investorage</h4>
+        <p class="mb-0">Your account is ready. Start by <a href="addInventory.php" class="alert-link">adding items</a> or <a href="orderImport.php" class="alert-link">importing an order</a>. Need help? See the <a href="help.php" class="alert-link">documentation</a>.</p>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($isDemoAccount && !$showDemoWelcome): ?>
+    <div class="alert alert-info mb-0" role="alert">
+        <i class="fas fa-info-circle"></i> You are using a demo account.
+        <a href="logInSignUp.php" class="alert-link">Create a real account</a> to keep your data.
+    </div>
+    <?php endif; ?>
+
+    <header class="dash-header">
+        <div style="flex: 1 1 280px; min-width: 0">
+            <p class="dash-eyebrow"><?php echo date('l, F j'); ?></p>
+            <h1><?php echo $greeting . ', ' . htmlspecialchars($_SESSION["userName"]); ?></h1>
         </div>
+        <form class="dash-search" action="searchInventory.php" method="get" role="search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <label for="dash-search-input" class="visually-hidden">Search inventory</label>
+            <input id="dash-search-input" type="search" name="search" placeholder="Search SKU, name, category">
+        </form>
+        <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
+    </header>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card primary" data-aos="zoom-in" data-aos-delay="100">
-                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-boxes"></i>
-                </div>
-                <div class="stat-value"><?php echo number_format($stats['totalItems']); ?></div>
-                <div class="stat-label">Total Products</div>
-                <a href="searchInventory.php" class="stretched-link"></a>
+    <section class="kpi-grid" aria-label="Key figures">
+        <div class="kpi">
+            <span class="kpi-label">Inventory value</span>
+            <span class="kpi-value">$<?php echo number_format($stats['totalValue'], 0); ?></span>
+            <span class="kpi-note"><?php echo number_format($stats['totalUnits']); ?> units on hand</span>
+            <a href="inventoryReport.php" class="stretched-link" aria-label="Open inventory report"></a>
+        </div>
+        <div class="kpi">
+            <span class="kpi-label">Products</span>
+            <span class="kpi-value"><?php echo number_format($stats['totalItems']); ?></span>
+            <span class="kpi-note">Across <?php echo $categoryCount . ($categoryCount === 1 ? ' category' : ' categories'); ?></span>
+            <a href="searchInventory.php" class="stretched-link" aria-label="Browse all items"></a>
+        </div>
+        <div class="kpi<?php echo $stats['lowStock'] > 0 ? ' alerting' : ''; ?>">
+            <span class="kpi-label">Low stock</span>
+            <span class="kpi-value"><?php echo number_format($stats['lowStock']); ?></span>
+            <span class="kpi-note"><?php echo number_format($stats['watchStock']); ?> more within 10 units</span>
+            <a href="lowstockReport.php" class="stretched-link" aria-label="Open low stock report"></a>
+        </div>
+        <div class="kpi">
+            <span class="kpi-label">Pending orders</span>
+            <span class="kpi-value"><?php echo number_format($stats['pendingOrders']); ?></span>
+            <span class="kpi-note">$<?php echo number_format($stats['pendingValue'], 2); ?> incoming</span>
+            <a href="orderManagement.php" class="stretched-link" aria-label="Open orders"></a>
+        </div>
+    </section>
+
+    <div class="panel-row">
+        <section class="panel" style="flex: 3 1 420px">
+            <div class="panel-head">
+                <h2>Value by category</h2>
+                <a href="inventoryReport.php">Full report</a>
             </div>
-
-            <div class="stat-card warning" data-aos="zoom-in" data-aos-delay="200">
-                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
+            <?php if (empty($categories) || $stats['totalValue'] <= 0): ?>
+                <p class="empty-note">Add items to see where your inventory value sits.</p>
+            <?php else: ?>
+                <?php foreach ($categories as $cat):
+                    $share = round($cat['value'] / $stats['totalValue'] * 100);
+                ?>
+                <div class="bar-row">
+                    <div class="bar-row-text">
+                        <span><?php echo htmlspecialchars($cat['Category']); ?></span>
+                        <span class="muted">$<?php echo number_format($cat['value'], 0); ?> · <?php echo $share; ?>%</span>
+                    </div>
+                    <div class="bar-track"><div class="bar-fill" style="width: <?php echo max($share, 1); ?>%"></div></div>
                 </div>
-                <div class="stat-value"><?php echo number_format($stats['lowStock']); ?></div>
-                <div class="stat-label">Low Stock Alerts</div>
-                <a href="lowstockReport.php" class="stretched-link"></a>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </section>
 
-            <div class="
+        <section class="panel" style="flex: 2 1 320px">
+            <div class="panel-head">
+                <h2>Needs attention</h2>
+                <a href="lowstockReport.php">Low stock report</a>
+            </div>
+            <?php if (empty($attention)): ?>
+                <p class="empty-note">Everything is comfortably stocked.</p>
+            <?php else: ?>
+                <?php foreach ($attention as $item):
+                    $isLow = $item['Stock'] <= $item['LowStockWarning'];
+                ?>
+                <div class="attention-item">
+                    <div style="flex: 1; min-width: 0">
+                        <p class="fw-semibold text-truncate"><?php echo htmlspecialchars($item['Name']); ?></p>
+                        <p class="mono mt-1"><?php echo htmlspecialchars($item['SKU']); ?> · <?php echo (int) $item['Stock']; ?> left · warn at <?php echo (int) $item['LowStockWarning']; ?></p>
+                    </div>
+                    <span class="pill <?php echo $isLow ? 'pill-low' : 'pill-watch'; ?>"><?php echo $isLow ? 'Low' : 'Watch'; ?></span>
+                </div>
+                <?php endforeach; ?>
+                <a href="changeInventory.php" class="btn btn-secondary">Update stock levels</a>
+            <?php endif; ?>
+        </section>
+    </div>
+
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Recent activity</h2>
+            <a href="inventoryReport.php">View audit log</a>
+        </div>
+        <?php if (empty($recentActivity)): ?>
+            <p class="empty-note">No activity yet.</p>
+        <?php else: ?>
+        <div style="overflow-x: auto">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>When</th>
+                        <th>Action</th>
+                        <th>SKU</th>
+                        <th>Details</th>
+                        <th>By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentActivity as $activity):
+                        [$label, $pill] = $activityStyles[$activity['ChangeType']] ?? [$activity['ChangeType'], 'pill-info'];
+                        $details = $activity['NewValue'] ?? '';
+                    ?>
+                    <tr>
+                        <td class="muted text-nowrap"><?php echo date('M j, H:i', strtotime($activity['CreatedAt'])); ?></td>
+                        <td><span class="pill <?php echo $pill; ?>"><?php echo htmlspecialchars($label); ?></span></td>
+                        <td class="mono"><?php echo htmlspecialchars($activity['SKU']); ?></td>
+                        <td><?php echo htmlspecialchars(strlen($details) > 90 ? substr($details, 0, 90) . '…' : $details); ?></td>
+                        <td class="muted"><?php echo htmlspecialchars($activity['userName']); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+    </section>
+</main>
