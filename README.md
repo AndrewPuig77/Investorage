@@ -123,28 +123,30 @@ A comprehensive web-based inventory management platform designed for small-to-me
 ```
 
 ### File Structure
-All pages sit in one folder, exactly as they are served, so the repo can be uploaded to a PHP host as-is.
+Everything the website serves lives in `public/`, in one flat folder (the pages include each other by filename).
 ```
 investorage/
-├──  index.php            # Landing page
-├──  activeHome.php       # Main dashboard (renders dashboardCard.php)
-├──  indexElements.php    # Shared <head>, theme, sidebar and footer
-├──  searchInventory.php  # Inventory list, search and filters
-├──  addInventory.php     # Add new items
-├──  orderImport.php      # CSV/JSON order import
-├──  inventoryReport.php  # Reports (PDF via fpdf/)
-├──  lowstockReport.php   # Low stock report
-├──  connection.php       # Opens the database connection
-├──  config.example.php   # Template for config.php (database login)
-├──  schema.sql           # Creates all database tables
-├──  fpdf/                # PDF library
-└──  *.png, *.jpg         # Images
+├──  public/                 # Upload the contents of this folder
+│   ├──  index.php           # Landing page
+│   ├──  activeHome.php      # Main dashboard (renders dashboardCard.php)
+│   ├──  indexElements.php   # Shared <head>, theme, sidebar and footer
+│   ├──  searchInventory.php # Inventory list, search and filters
+│   ├──  addInventory.php    # Add new items
+│   ├──  orderImport.php     # CSV/JSON order import
+│   ├──  inventoryReport.php # Reports (PDF via fpdf/)
+│   ├──  lowstockReport.php  # Low stock report
+│   ├──  connection.php      # Opens the database connection
+│   ├──  config.example.php  # Template for config.php (database login)
+│   ├──  fpdf/               # PDF library
+│   └──  *.png, *.jpg        # Images
+├──  schema.sql              # Creates all database tables
+└──  Investorage Software Documentation Package.pdf
 ```
 
 ### Setup
 1. Create a MySQL database and import `schema.sql` into it (phpMyAdmin → Import).
-2. Copy `config.example.php` to `config.php` and fill in your database host, user, password and name. `config.php` is in `.gitignore`, so it is never committed.
-3. Upload every file to your host's web root (e.g. `htdocs`), or run it locally with XAMPP.
+2. In `public/`, copy `config.example.php` to `config.php` and fill in your database host, user, password and name. `config.php` is in `.gitignore`, so it is never committed.
+3. Upload the **contents** of `public/` to your host's web root (e.g. `htdocs`), or point XAMPP at it locally.
 4. Open `index.php` and click **Try Demo** to fill a sample warehouse.
 
 ---
