@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -16,7 +16,7 @@ $User_Id = $_SESSION["userID"];
 
 // Process deletion if the form is submitted.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    include 'connection.php'; // Re-include for POST processing
+    include 'includes/connection.php'; // Re-include for POST processing
     
     // Start transaction
     $conn->begin_transaction();

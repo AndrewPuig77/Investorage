@@ -2,8 +2,8 @@
 <html lang="en">
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -229,7 +229,7 @@ if (!isset($_SESSION["userID"])) {
     <!-- Traditional File Upload Form (fallback) -->
     <hr class="my-5">
     <h4>Traditional Upload</h4>
-    <form action="processOrderImport.php" method="post" enctype="multipart/form-data">
+    <form action="actions/processOrderImport.php" method="post" enctype="multipart/form-data">
       <div class="mb-3">
         <label for="orderFile" class="form-label">Select Order File (CSV or JSON)</label>
         <input type="file" name="orderFile" id="orderFile" class="form-control" accept=".csv, .json" required>
@@ -454,7 +454,7 @@ if (!isset($_SESSION["userID"])) {
     document.getElementById('progressText').textContent = 'Sending data to server...';
     
     // Send to server
-    fetch('processOrderImport.php', {
+    fetch('actions/processOrderImport.php', {
       method: 'POST',
       body: formData
     })

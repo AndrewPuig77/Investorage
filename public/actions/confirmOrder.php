@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'connection.php';
+include '../includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -121,6 +121,6 @@ $updateOrder->close();
 
 $conn->close();
 
-header("Location: orderManagement.php?message=" . urlencode("Order confirmed and inventory updated."));
+header("Location: ../orderManagement.php?message=" . urlencode("Order confirmed and inventory updated."));
 exit();
 ?>

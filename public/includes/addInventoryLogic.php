@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php'; // Contains $head, $navActive, $tagline, $footer, etc.
+include __DIR__ . '/connection.php';
+include __DIR__ . '/indexElements.php'; // Contains $head, $navActive, $tagline, $footer, etc.
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

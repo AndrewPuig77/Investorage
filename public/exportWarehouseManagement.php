@@ -1,9 +1,9 @@
 <?php
 session_start();
 ob_start(); // Prevent any output before PDF headers
-include 'connection.php';
-require('fpdf/fpdf.php');
-include 'indexElements.php';
+include 'includes/connection.php';
+require('lib/fpdf/fpdf.php');
+include 'includes/indexElements.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

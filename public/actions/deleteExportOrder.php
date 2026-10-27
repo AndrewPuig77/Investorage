@@ -1,11 +1,11 @@
 <?php
 session_start();
-include 'connection.php';
+include '../includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 if (!isset($_SESSION['userID'])) {
-    header("Location: logIn.php");
+    header("Location: ../logIn.php");
     exit();
 }
 
@@ -39,7 +39,7 @@ if ($stmtDel->execute()) {
     $stmtDel->close();
     $conn->close();
     // Redirect back to the export view page with success message
-    header("Location: exportWarehouseView.php?message=Export+Order+Deleted+Successfully");
+    header("Location: ../exportWarehouseView.php?message=Export+Order+Deleted+Successfully");
     exit();
 } else {
     $stmtDel->close();

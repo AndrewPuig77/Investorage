@@ -1,8 +1,8 @@
 <?php
 // orderManagement.php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -81,13 +81,13 @@ $conn->close();
                   <td><?php echo htmlspecialchars($order['OrderType'] ?? 'n/a'); ?></td>
                   <td>
                       <?php if ($order['OrderStatus'] === 'pending'): ?>
-                          <form style="display:inline-block;" action="confirmOrder.php" method="post">
+                          <form style="display:inline-block;" action="actions/confirmOrder.php" method="post">
                               <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($order['OrderID']); ?>">
                               <button type="submit" class="btn btn-primary btn-sm">Confirm Delivery</button>
                           </form>
                           <a href="editOrder.php?orderID=<?php echo urlencode($order['OrderID']); ?>" class="btn btn-warning btn-sm ms-1">Edit Order</a>
                       <?php endif; ?>
-                      <form style="display:inline-block; margin-left:5px;" action="removeOrder.php" method="post" onsubmit="return confirm('Are you sure you want to delete this order?');">
+                      <form style="display:inline-block; margin-left:5px;" action="actions/removeOrder.php" method="post" onsubmit="return confirm('Are you sure you want to delete this order?');">
                           <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($order['OrderID']); ?>">
                           <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                       </form>

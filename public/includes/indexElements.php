@@ -505,7 +505,7 @@ $nav = '
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
   <div class="container-fluid px-4">
     <a class="navbar-brand d-flex align-items-center" href="index.php">
-      <img src="New_Investorage_Logo.png" alt="Investorage" style="width:45px;height:45px;" class="me-2">
+      <img src="assets/images/New_Investorage_Logo.png" alt="Investorage" style="width:45px;height:45px;" class="me-2">
       <span class="fw-bold">Investorage</span>
     </a>
 
@@ -528,7 +528,7 @@ $nav = '
           <a class="nav-link btn btn-primary text-white px-4 ms-2" href="logInSignUp.php">Get Started</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link btn btn-warning text-dark px-4 ms-2" href="createDemoAccount.php">
+          <a class="nav-link btn btn-warning text-dark px-4 ms-2" href="actions/createDemoAccount.php">
             <i class="fas fa-play-circle"></i> Try Demo
           </a>
         </li>
@@ -554,7 +554,7 @@ if (isset($_SESSION['isDemoAccount']) && $_SESSION['isDemoAccount']) {
 $navActive = '
 <aside class="app-sidebar">
   <a class="app-brand" href="activeHome.php">
-    <img src="New_Investorage_Logo.png" alt="">
+    <img src="assets/images/New_Investorage_Logo.png" alt="">
     <span>Investorage</span>
   </a>
   <nav class="app-nav" aria-label="Main">
@@ -568,7 +568,7 @@ $navActive = '
     <div class="app-nav-label">Orders</div>
     ' . $appNavLink('orderManagement.php', 'fas fa-list', 'Orders', ['editOrder.php']) . '
     ' . $appNavLink('orderImport.php', 'fas fa-file-import', 'Import orders') . '
-    ' . $appNavLink('warehouseExport.php', 'fas fa-truck', 'Exports', ['exportManagement.php', 'exportWarehouseView.php', 'exportWarehouseManagement.php', 'exportOrder.php']) . '
+    ' . $appNavLink('warehouseExport.php', 'fas fa-truck', 'Exports', ['exportWarehouseView.php', 'exportWarehouseManagement.php', 'exportOrder.php']) . '
     <div class="app-nav-label">Insights</div>
     ' . $appNavLink('inventoryReport.php', 'fas fa-chart-line', 'Reports') . '
   </nav>
@@ -593,7 +593,7 @@ $footer = '
   <div class="container">
     <div class="site-footer-row">
       <a class="app-brand" href="index.php" style="padding: 0">
-        <img src="New_Investorage_Logo.png" alt="">
+        <img src="assets/images/New_Investorage_Logo.png" alt="">
         <span>Investorage</span>
       </a>
       <nav class="site-footer-links" aria-label="Footer">

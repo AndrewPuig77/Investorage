@@ -1,7 +1,7 @@
 <?php
 // logInSignUpLogic.php
 session_start(); // Add session start at the beginning
-include 'connection.php';
+include 'includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 

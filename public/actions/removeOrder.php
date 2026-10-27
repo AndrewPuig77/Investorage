@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'connection.php';
+include '../includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -38,6 +38,6 @@ $stmt2->execute();
 $stmt2->close();
 
 mysqli_close($conn);
-header("Location: orderManagement.php?message=" . urlencode("Order removed successfully."));
+header("Location: ../orderManagement.php?message=" . urlencode("Order removed successfully."));
 exit();
 ?>

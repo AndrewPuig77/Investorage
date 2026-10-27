@@ -1,9 +1,9 @@
 <?php
 // enhancedAddInventory.php - Modern UI version
 session_start();
-include 'connection.php';
-include 'indexElements.php';
-include 'addInventoryLogic.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
+include 'includes/addInventoryLogic.php';
 
 echo $license;
 ?>

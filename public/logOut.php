@@ -9,7 +9,7 @@ $groupId = $_SESSION['GroupID'] ?? null;
 
 // If it's a demo account, clean it up
 if ($isDemoAccount && $userId && $groupId) {
-    include 'connection.php';
+    include 'includes/connection.php';
     
     // Start transaction
     $conn->begin_transaction();
@@ -84,7 +84,7 @@ if ($isDemoAccount && $userId && $groupId) {
 session_unset();
 session_destroy();
 
-include 'indexElements.php';
+include 'includes/indexElements.php';
 echo $license;
 ?>
 <html lang="en">

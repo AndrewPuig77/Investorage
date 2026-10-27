@@ -1,5 +1,5 @@
 <?php
-include 'indexElements.php';
+include 'includes/indexElements.php';
 echo $license;
 ?>
 
@@ -300,7 +300,7 @@ echo $license;
             <h1>Know what's on every shelf. <span>Before you run out.</span></h1>
             <p class="lede">Investorage tracks your stock, warns you when items run low, brings orders in by CSV, and logs every change with who made it.</p>
             <div class="hero-actions">
-              <a href="createDemoAccount.php" class="btn btn-primary btn-lg"><i class="fas fa-play" aria-hidden="true"></i> Try the demo</a>
+              <a href="actions/createDemoAccount.php" class="btn btn-primary btn-lg"><i class="fas fa-play" aria-hidden="true"></i> Try the demo</a>
               <a href="logInSignUp.php" class="btn btn-secondary btn-lg">Create an account</a>
             </div>
             <p class="hero-note">The demo opens a sample warehouse straight away. No sign-up needed.</p>
@@ -452,7 +452,7 @@ echo $license;
           <h2>See it with real-looking data</h2>
           <p class="lede">The demo opens a warehouse with sample items, orders and an export already in it.</p>
           <div class="hero-actions">
-            <a href="createDemoAccount.php" class="btn btn-primary btn-lg"><i class="fas fa-play" aria-hidden="true"></i> Try the demo</a>
+            <a href="actions/createDemoAccount.php" class="btn btn-primary btn-lg"><i class="fas fa-play" aria-hidden="true"></i> Try the demo</a>
             <a href="logInSignUp.php" class="btn btn-secondary btn-lg">Create an account</a>
           </div>
         </div>

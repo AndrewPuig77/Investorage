@@ -34,7 +34,7 @@ try {
     }
 
     // Include connection
-    include 'connection.php';
+    include '../includes/connection.php';
     
     if (!isset($conn) || $conn->connect_error) {
         handleError('Database connection failed.');
@@ -185,13 +185,13 @@ try {
             $message = "Order Imported Successfully. Items Inserted: $inserted, Duplicates Skipped: $skipped.";
 
             // For file upload, redirect back with message
-            header("Location: orderImport.php?message=" . urlencode($message));
+            header("Location: ../orderImport.php?message=" . urlencode($message));
             exit();
 
         } catch (Exception $e) {
             $conn->rollback();
             $message = "Import failed: " . $e->getMessage();
-            header("Location: orderImport.php?message=" . urlencode($message));
+            header("Location: ../orderImport.php?message=" . urlencode($message));
             exit();
         }
     }
@@ -204,7 +204,7 @@ try {
     if (isset($_POST['items'])) {
         handleError($e->getMessage());
     } else {
-        header("Location: orderImport.php?message=" . urlencode("Import failed: " . $e->getMessage()));
+        header("Location: ../orderImport.php?message=" . urlencode("Import failed: " . $e->getMessage()));
         exit();
     }
 }

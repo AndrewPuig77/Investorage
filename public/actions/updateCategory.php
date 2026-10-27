@@ -1,12 +1,12 @@
 <?php
 session_start();
-include 'connection.php';
+include '../includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Ensure the user is logged in
 if (!isset($_SESSION["userID"])) {
-    header("Location: logIn.php");
+    header("Location: ../logIn.php");
     exit();
 }
 $User_Id = $_SESSION["userID"];
@@ -14,7 +14,7 @@ $User_Id = $_SESSION["userID"];
 // SKU is required to identify which record to update.
 if (empty($_POST["sku"])) {
     $errorMessage = "Item SKU is required.";
-    header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+    header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
     exit();
 }
 $sku = $_POST["sku"];
@@ -29,7 +29,7 @@ if (!empty($_POST["newSalesPrice"])) {
     $newSalesPrice = $_POST["newSalesPrice"];
     if (!is_numeric($newSalesPrice)) {
         $errorMessage = "Sales Price must be numeric.";
-        header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+        header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
         exit();
     }
     $updateFields[] = "SalesPrice = ?";
@@ -42,7 +42,7 @@ if (!empty($_POST["newStock"])) {
     $newStock = $_POST["newStock"];
     if (!ctype_digit($newStock)) {
         $errorMessage = "Stock must be a positive integer.";
-        header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+        header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
         exit();
     }
     $updateFields[] = "Stock = ?";
@@ -56,7 +56,7 @@ if (!empty($_POST["newStatus"])) {
     $allowedStatuses = ["In Stock", "Ordered", "Backordered", "Reserved", "Dropped"];
     if (!in_array($newStatus, $allowedStatuses)) {
         $errorMessage = "Status must be one of: In Stock, Ordered, Backordered, Reserved, Dropped.";
-        header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+        header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
         exit();
     }
     $updateFields[] = "Status = ?";
@@ -76,7 +76,7 @@ if (isset($_POST["newLowStockWarning"]) && $_POST["newLowStockWarning"] !== "") 
 // Check if there's at least one field to update
 if (empty($updateFields)) {
     $errorMessage = "No fields provided to update.";
-    header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+    header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
     exit();
 }
 
@@ -87,7 +87,7 @@ $oldSql = "SELECT SalesPrice, Stock, Status, LowStockWarning
 $oldStmt = $conn->prepare($oldSql);
 if (!$oldStmt) {
     $errorMessage = "Error preparing oldSql statement: " . $conn->error;
-    header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+    header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
     exit();
 }
 $oldStmt->bind_param("si", $sku, $User_Id);
@@ -120,7 +120,7 @@ $paramTypes  .= "si";
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
     $errorMessage = "Failed to prepare statement: " . $conn->error;
-    header("Location: changeInventory.php?message=" . urlencode($errorMessage));
+    header("Location: ../changeInventory.php?message=" . urlencode($errorMessage));
     exit();
 }
 
@@ -191,5 +191,5 @@ $stmt->close();
 mysqli_close($conn);
 
 // Redirect back to changeInventory.php 
-header("Location: changeInventory.php?message=" . urlencode($successMessage ?? $errorMessage));
+header("Location: ../changeInventory.php?message=" . urlencode($successMessage ?? $errorMessage));
 exit();

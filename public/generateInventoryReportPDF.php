@@ -1,9 +1,9 @@
 <?php
 session_start();
-include 'connection.php';
+include 'includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require('fpdf/fpdf.php');
+require('lib/fpdf/fpdf.php');
 
 // Ensure the user is logged in.
 if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {

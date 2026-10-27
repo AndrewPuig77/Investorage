@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -82,7 +82,7 @@ mysqli_close($conn);
         <h2>Edit Order <?php echo htmlspecialchars($orderID); ?></h2>
         <p><strong>Order Status:</strong> <?php echo htmlspecialchars($order['OrderStatus']); ?></p>
         <!-- Form for updating order items -->
-        <form action="updateOrder.php" method="post">
+        <form action="actions/updateOrder.php" method="post">
             <!-- Hidden field to pass the OrderID -->
             <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($orderID); ?>">
             <table class="table table-bordered">
@@ -137,7 +137,7 @@ mysqli_close($conn);
                         </td>
                         <td>
                             <!-- Button to remove the order item -->
-                            <button type="submit" formaction="removeOrderItem.php" name="itemID"
+                            <button type="submit" formaction="actions/removeOrderItem.php" name="itemID"
                                     value="<?php echo htmlspecialchars($item['id']); ?>" class="btn btn-danger btn-sm">
                                 Remove
                             </button>

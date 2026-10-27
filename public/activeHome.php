@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'indexElements.php';
+include 'includes/indexElements.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {
@@ -15,7 +15,7 @@ echo $license;
 <?php echo $head; ?>
 <body>
   <?php echo $navActive; ?>
-  <?php include 'dashboardCard.php'; ?>
+  <?php include 'includes/dashboardCard.php'; ?>
   <?php echo $footer; ?>
 </body>
 </html>

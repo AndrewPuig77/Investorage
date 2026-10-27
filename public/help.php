@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ?>

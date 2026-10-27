@@ -1,7 +1,7 @@
 <?php
 // createDemoAccount.php
 session_start();
-include 'connection.php';
+include '../includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -135,14 +135,14 @@ try {
     $_SESSION["isDemoAccount"] = true; // Flag for demo account
 
     // Redirect to active home with success message
-    header("Location: activeHome.php?demo=1");
+    header("Location: ../activeHome.php?demo=1");
     exit();
 
 } catch (Exception $e) {
     // Rollback on error
     $conn->rollback();
     error_log("Demo account creation failed: " . $e->getMessage());
-    header("Location: index.php?error=" . urlencode("Failed to create demo account. Please try again."));
+    header("Location: ../index.php?error=" . urlencode("Failed to create demo account. Please try again."));
     exit();
 }
 

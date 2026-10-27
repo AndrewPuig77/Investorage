@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 
 if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {
     header("Location: logIn.php");

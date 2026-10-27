@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -342,7 +342,7 @@ mysqli_close($conn);
                         <p>Select an item from the left to update its details</p>
                     </div>
                     
-                    <form action="updateCategory.php" method="post" id="updateForm" style="display: none;">
+                    <form action="actions/updateCategory.php" method="post" id="updateForm" style="display: none;">
                         <input type="hidden" name="sku" id="selectedSku">
                         
                         <div class="mb-4">

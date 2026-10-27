@@ -1,8 +1,8 @@
 <?php
 // exportOrder.php
 session_start();
-include 'connection.php';
-require 'fpdf/fpdf.php';
+include 'includes/connection.php';
+require 'lib/fpdf/fpdf.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -116,7 +116,7 @@ if ($exportType === 'pdf') {
 }
 
 // --- Default: Render Web View ---
-include 'indexElements.php';
+include 'includes/indexElements.php';
 echo $license;
 ?>
 <!DOCTYPE html>

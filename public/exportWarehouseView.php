@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -83,7 +83,7 @@ $conn->close();
                     <td>$<?= number_format($order['TotalValue'], 2) ?></td>
                     <td>
                         <?php if (!$isStaff): ?>
-                            <form action="deleteExportOrder.php" method="post" style="display:inline-block;" 
+                            <form action="actions/deleteExportOrder.php" method="post" style="display:inline-block;" 
                                   onsubmit="return confirm('Are you sure you want to delete this export order?');">
                                 <input type="hidden" name="ExportOrderID" value="<?= htmlspecialchars($order['ExportOrderID']) ?>">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>

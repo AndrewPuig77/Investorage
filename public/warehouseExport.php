@@ -1,8 +1,8 @@
 <?php
 // warehouseExport.php - Fixed version
 session_start();
-include 'connection.php';
-include 'indexElements.php';
+include 'includes/connection.php';
+include 'includes/indexElements.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -145,7 +145,7 @@ $conn->close();
                 </div>
             <?php endif; ?>
             
-            <form action="processExportOrder.php" method="post" onsubmit="return validateExport()">
+            <form action="actions/processExportOrder.php" method="post" onsubmit="return validateExport()">
                 <div class="mb-4">
                     <label for="location" class="form-label h5">
                         <i class="fas fa-map-marker-alt"></i> Export Destination

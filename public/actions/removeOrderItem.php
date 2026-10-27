@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'connection.php';
+include '../includes/connection.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -32,6 +32,6 @@ $stmt->execute();
 $stmt->close();
 
 mysqli_close($conn);
-header("Location: editOrder.php?orderID=" . urlencode($orderID) . "&message=" . urlencode("Order item removed."));
+header("Location: ../editOrder.php?orderID=" . urlencode($orderID) . "&message=" . urlencode("Order item removed."));
 exit();
 ?>
