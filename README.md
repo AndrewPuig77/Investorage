@@ -123,30 +123,39 @@ A comprehensive web-based inventory management platform designed for small-to-me
 ```
 
 ### File Structure
+All pages sit in one folder, exactly as they are served, so the repo can be uploaded to a PHP host as-is.
 ```
 investorage/
-├──  assets/           # CSS, JS, Images
-├──  includes/         # Shared PHP components
-├──  index.php         # Landing page
-├──  activeHome.php    # Main dashboard
-├──  addInventory.php  # Add new items
-├──  searchInventory.php # Advanced search
-├──  orderImport.php   # Bulk import system
-├──  inventoryReport.php # Analytics dashboard
-├──  lowstockReport.php # Alert system
-└──  connection.php    # Database configuration
+├──  index.php            # Landing page
+├──  activeHome.php       # Main dashboard (renders dashboardCard.php)
+├──  indexElements.php    # Shared <head>, theme, sidebar and footer
+├──  searchInventory.php  # Inventory list, search and filters
+├──  addInventory.php     # Add new items
+├──  orderImport.php      # CSV/JSON order import
+├──  inventoryReport.php  # Reports (PDF via fpdf/)
+├──  lowstockReport.php   # Low stock report
+├──  connection.php       # Opens the database connection
+├──  config.example.php   # Template for config.php (database login)
+├──  schema.sql           # Creates all database tables
+├──  fpdf/                # PDF library
+└──  *.png, *.jpg         # Images
 ```
+
+### Setup
+1. Create a MySQL database and import `schema.sql` into it (phpMyAdmin → Import).
+2. Copy `config.example.php` to `config.php` and fill in your database host, user, password and name. `config.php` is in `.gitignore`, so it is never committed.
+3. Upload every file to your host's web root (e.g. `htdocs`), or run it locally with XAMPP.
+4. Open `index.php` and click **Try Demo** to fill a sample warehouse.
 
 ---
 
 ##  Security Features
 
-- **Input Sanitization** - All user inputs are validated and sanitized
+- **Password Hashing** - User and warehouse passwords are stored with `password_hash()`
 - **SQL Injection Prevention** - Prepared statements throughout
-- **Session Management** - Secure session handling with timeouts
-- **Role-Based Access** - Granular permission system
-- **CSRF Protection** - Form token validation
-- **Data Encryption** - Sensitive data protection
+- **Session Management** - Sessions time out after an hour of inactivity
+- **Role-Based Access** - Admin and Staff roles per warehouse
+- **Credentials Kept Out of Git** - Database login lives in an ignored `config.php`
 
 ---
 
