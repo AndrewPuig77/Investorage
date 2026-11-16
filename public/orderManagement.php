@@ -110,7 +110,7 @@ function formatDay($value) {
           <a class="<?php echo $statusFilter === 'pending' ? 'active' : ''; ?>" href="orderManagement.php?status=pending">Awaiting delivery <?php echo $pendingCount; ?></a>
           <a class="<?php echo $statusFilter === 'complete' ? 'active' : ''; ?>" href="orderManagement.php?status=complete">Received <?php echo $receivedCount; ?></a>
         </div>
-        <span>Mark an order received to add its items to inventory.</span>
+        <span>Mark an order received to check what arrived and add it to inventory.</span>
       </div>
 
       <?php if (!empty($shownOrders)): ?>
@@ -157,10 +157,7 @@ function formatDay($value) {
               <td>
                 <div class="row-actions">
                   <?php if ($isPending): ?>
-                    <form action="actions/confirmOrder.php" method="post" class="d-inline" data-confirm="Mark <?php echo $id; ?> as received? Its items will be added to inventory.">
-                      <input type="hidden" name="orderID" value="<?php echo $id; ?>">
-                      <button type="submit" class="btn-row primary"><i class="fas fa-check" aria-hidden="true"></i> Mark received</button>
-                    </form>
+                    <a href="receiveOrder.php?orderID=<?php echo urlencode($order['OrderID']); ?>" class="btn-row primary"><i class="fas fa-check" aria-hidden="true"></i> Mark received</a>
                     <a href="editOrder.php?orderID=<?php echo urlencode($order['OrderID']); ?>" class="btn-row"><i class="fas fa-pen" aria-hidden="true"></i> Edit</a>
                   <?php endif; ?>
                   <div class="dropdown">

@@ -140,11 +140,7 @@ echo $license;
       <a class="btn btn-secondary" href="exportOrder.php?<?php echo $downloadQuery('pdf'); ?>" target="_blank"><i class="fas fa-file-pdf" aria-hidden="true"></i> PDF</a>
       <?php if ($isPending): ?>
         <a class="btn btn-secondary" href="editOrder.php?orderID=<?php echo urlencode($orderID); ?>"><i class="fas fa-pen" aria-hidden="true"></i> Edit</a>
-        <form action="actions/confirmOrder.php" method="post" class="d-inline"
-              onsubmit="return confirm('Mark this order as received? Its items will be added to inventory.');">
-          <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($orderID); ?>">
-          <button type="submit" class="btn btn-primary"><i class="fas fa-check" aria-hidden="true"></i> Mark received</button>
-        </form>
+        <a class="btn btn-primary" href="receiveOrder.php?orderID=<?php echo urlencode($orderID); ?>"><i class="fas fa-check" aria-hidden="true"></i> Mark received</a>
       <?php endif; ?>
     </header>
 

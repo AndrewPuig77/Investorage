@@ -620,7 +620,7 @@ $navActive = '
     ' . $appNavLink('addInventory.php', 'fas fa-plus', 'Add item') . '
     ' . $appNavLink('lowstockReport.php', 'fas fa-exclamation-triangle', 'Low stock') . '
     <div class="app-nav-label">Orders</div>
-    ' . $appNavLink('orderManagement.php', 'fas fa-exchange-alt', 'Orders', ['editOrder.php', 'exportOrder.php', 'exportWarehouseView.php', 'exportWarehouseManagement.php']) . '
+    ' . $appNavLink('orderManagement.php', 'fas fa-exchange-alt', 'Orders', ['editOrder.php', 'receiveOrder.php', 'exportOrder.php', 'exportWarehouseView.php', 'exportWarehouseManagement.php']) . '
     ' . $appNavLink('orderImport.php', 'fas fa-file-import', 'Import order') . '
     ' . ($navUserRole === 'Staff' ? '' : $appNavLink('warehouseExport.php', 'fas fa-truck', 'New export')) . '
     ' . ($navUserRole === 'Staff' ? '' : '<div class="app-nav-label">Insights</div>' . $appNavLink('inventoryReport.php', 'fas fa-chart-line', 'Reports')) . '
