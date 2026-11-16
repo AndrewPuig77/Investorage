@@ -689,6 +689,46 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
             border-top: 1px solid var(--border-color);
         }
 
+        /* Restock order */
+        .restock.modal-content {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+        }
+
+        .restock .modal-header,
+        .restock .modal-footer {
+            border-color: var(--border-color);
+        }
+
+        .restock-table .qty-col {
+            width: 110px;
+        }
+
+        .restock-table .price-col {
+            width: 140px;
+        }
+
+        .restock-table input.form-control {
+            min-height: 38px;
+            padding: 4px 8px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .restock-total {
+            padding-bottom: 8px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .restock-total strong {
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
         /* Saved / removed messages */
         .toast-area {
             position: fixed;
@@ -775,6 +815,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
             <div><span class="pill pill-low"><?php echo (int) $lowSummary['lowItems']; ?> Low</span> at or below their warning level</div>
             <div><span class="pill pill-watch"><?php echo (int) $lowSummary['watchItems']; ?> Watch</span> within 10 of it</div>
             <div>$<?php echo number_format((float) $lowSummary['stockValue'], 2); ?> of stock on hand</div>
+            <button type="button" class="btn-row primary ms-auto" id="reorderShown"><i class="fas fa-redo" aria-hidden="true"></i> Reorder these</button>
         </section>
         <?php endif; ?>
 
@@ -792,6 +833,9 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                     </span>
                     <div class="bulk-actions" aria-live="polite">
                         <strong id="selectedCount">0 selected</strong>
+                        <button type="button" class="btn-row primary" id="restockSelected">
+                            <i class="fas fa-redo" aria-hidden="true"></i> Create restock order
+                        </button>
                         <button type="submit" class="btn-danger-soft" name="bulk" value="1"
                                 data-confirm="Remove the selected items? This can't be undone.">
                             <i class="fas fa-trash-alt" aria-hidden="true"></i> Remove selected
@@ -972,6 +1016,44 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                     <i class="fas fa-trash-alt" aria-hidden="true"></i> Remove this item
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Restock: turns the ticked items into a pending incoming order -->
+    <div class="modal fade" id="restockModal" tabindex="-1" aria-labelledby="restockTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <form class="modal-content restock" method="post" action="actions/createRestockOrder.php" id="restockForm">
+                <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title h5" id="restockTitle">Create restock order</h2>
+                        <div class="field-hint" style="margin-top: 2px">Suggested quantities bring each item up to 3× its warning level. Change any of them.</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-wrap">
+                        <table class="data-table restock-table" style="min-width: 600px">
+                            <thead>
+                                <tr><th>Product</th><th class="num">In stock</th><th class="qty-col num">Order</th><th class="price-col num">Unit price</th><th class="num">Line total</th></tr>
+                            </thead>
+                            <tbody id="restockRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="me-auto d-flex align-items-end gap-3 flex-wrap">
+                        <div>
+                            <label class="form-label mb-1" for="expectedDate" style="font-size: 0.8125rem; color: var(--text-secondary)">Expected delivery</label>
+                            <input type="date" class="form-control" name="expectedDate" id="expectedDate" required
+                                   min="<?php echo date('Y-m-d'); ?>" value="<?php echo date('Y-m-d', strtotime('+7 days')); ?>" style="color-scheme: dark">
+                        </div>
+                        <div class="restock-total">Total <strong id="restockTotal">$0.00</strong></div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create order</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1167,6 +1249,58 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                 input.value = Math.max(0, next);
             });
         });
+
+        // Restock order from the ticked items
+        const restockModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('restockModal'));
+        const restockRows = document.getElementById('restockRows');
+        const money = function (n) {
+            return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+        const escapeHtml = function (s) {
+            return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+        };
+
+        function updateRestockTotal() {
+            let total = 0;
+            restockRows.querySelectorAll('tr').forEach(function (row) {
+                const qty = parseInt(row.querySelector('.r-qty').value, 10) || 0;
+                const price = parseFloat(row.querySelector('.r-price').value) || 0;
+                row.querySelector('.r-line').textContent = money(qty * price);
+                total += qty * price;
+            });
+            document.getElementById('restockTotal').textContent = money(total);
+        }
+
+        function openRestock() {
+            const chosen = rowChecks.filter(function (c) { return c.checked; });
+            if (!chosen.length) return;
+            restockRows.innerHTML = chosen.map(function (check) {
+                const d = check.closest('tr').querySelector('.edit-btn').dataset;
+                const stock = parseInt(d.stock, 10), low = parseInt(d.low, 10);
+                const suggested = Math.max(1, low * 3 - stock);
+                const sku = escapeHtml(d.sku);
+                return '<tr>' +
+                    '<td><div style="font-weight:600">' + escapeHtml(d.name) + '</div><div class="cell-sub mono">' + sku + '</div></td>' +
+                    '<td class="num">' + stock + '<div class="cell-sub">warn at ' + low + '</div></td>' +
+                    '<td><input type="number" class="form-control r-qty" name="qty[' + sku + ']" min="1" step="1" value="' + suggested + '" required aria-label="Quantity of ' + escapeHtml(d.name) + ' to order"></td>' +
+                    '<td><input type="number" class="form-control r-price" name="price[' + sku + ']" min="0" step="0.01" value="' + escapeHtml(d.price) + '" required aria-label="Unit price of ' + escapeHtml(d.name) + '"></td>' +
+                    '<td class="num r-line"></td>' +
+                    '</tr>';
+            }).join('');
+            updateRestockTotal();
+            restockModal.show();
+        }
+
+        restockRows.addEventListener('input', updateRestockTotal);
+        document.getElementById('restockSelected').addEventListener('click', openRestock);
+        const reorderShown = document.getElementById('reorderShown');
+        if (reorderShown) {
+            reorderShown.addEventListener('click', function () {
+                rowChecks.forEach(function (c) { c.checked = true; });
+                refreshSelection();
+                openRestock();
+            });
+        }
 
         // Add item: the same kind of panel, empty
         const addPanelEl = document.getElementById('addPanel');
