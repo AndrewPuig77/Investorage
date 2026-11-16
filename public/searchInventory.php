@@ -724,7 +724,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                 <h1>Inventory</h1>
             </div>
             <a href="<?php echo htmlspecialchars(listUrl($currentQuery, ['format' => 'csv', 'page' => ''])); ?>" class="btn btn-secondary"><i class="fas fa-file-csv" aria-hidden="true"></i> Download CSV</a>
-            <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
+            <a href="searchInventory.php?add=1" class="btn btn-primary add-item-trigger"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
         </header>
 
         <form class="filter-bar" method="get" action="searchInventory.php" id="filterForm" role="search">
@@ -893,7 +893,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                     <div class="empty-state">
                         <h2>No items yet</h2>
                         <p>Add your first item, or bring a batch in from an order file.</p>
-                        <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
+                        <a href="searchInventory.php?add=1" class="btn btn-primary add-item-trigger"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
                         <a href="orderImport.php" class="btn btn-secondary">Import orders</a>
                     </div>
                 <?php endif; ?>
@@ -972,6 +972,83 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                     <i class="fas fa-trash-alt" aria-hidden="true"></i> Remove this item
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Add panel: the same side panel as Edit, empty -->
+    <div class="offcanvas offcanvas-end edit-panel" tabindex="-1" id="addPanel" aria-labelledby="addTitle">
+        <div class="offcanvas-header">
+            <div>
+                <h2 class="offcanvas-title" id="addTitle">Add item</h2>
+                <div class="field-hint" style="margin-top: 2px">New stock from a supplier? Importing an order adds items for you.</div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form class="edit-form" method="post" action="actions/addItem.php" id="addForm">
+                <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
+
+                <div class="row g-3">
+                    <div class="col-5">
+                        <label class="form-label" for="addSku">SKU</label>
+                        <input type="text" class="form-control mono" name="SKU" id="addSku" maxlength="50" required autocomplete="off">
+                    </div>
+                    <div class="col-7">
+                        <label class="form-label" for="addCategory">Category</label>
+                        <input type="text" class="form-control" name="Category" id="addCategory" list="categoryList" required autocomplete="off">
+                        <datalist id="categoryList">
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo htmlspecialchars($cat); ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label" for="addName">Product name</label>
+                    <input type="text" class="form-control" name="Name" id="addName" required>
+                </div>
+
+                <div>
+                    <label class="form-label" for="addDescription">Description <span class="field-hint">(optional)</span></label>
+                    <textarea class="form-control" name="Description" id="addDescription" rows="2"></textarea>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label" for="addPrice">Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="SalesPrice" id="addPrice" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="addStock">Stock on hand</label>
+                        <input type="number" class="form-control" name="Stock" id="addStock" min="0" step="1" value="0" required>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label" for="addLow">Warning level</label>
+                        <input type="number" class="form-control" name="LowStockWarning" id="addLow" min="0" step="1" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="addStatus">Status</label>
+                        <select class="form-select" name="Status" id="addStatus" required>
+                            <?php foreach ($statusOptions as $option): ?>
+                                <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-hint" style="margin-top: -8px">The item shows as Low at or below its warning level.</div>
+
+                <div class="edit-actions">
+                    <button type="submit" class="btn btn-secondary" name="next" value="add">Save and add another</button>
+                    <button type="submit" class="btn btn-primary">Add item</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1091,6 +1168,25 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
             });
         });
 
+        // Add item: the same kind of panel, empty
+        const addPanelEl = document.getElementById('addPanel');
+        const addPanel = bootstrap.Offcanvas.getOrCreateInstance(addPanelEl);
+        document.querySelectorAll('.add-item-trigger').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                addPanel.show();
+            });
+        });
+        addPanelEl.addEventListener('shown.bs.offcanvas', function () {
+            document.getElementById('addSku').focus();
+        });
+        if (<?php echo json_encode(($_GET['add'] ?? '') === '1'); ?>) {
+            addPanel.show();
+            const url = new URL(window.location.href);
+            url.searchParams.delete('add');
+            window.history.replaceState(null, '', url.pathname + url.search);
+        }
+
         // Opened from a link like searchInventory.php?search=SKU008&edit=SKU008
         const editSku = <?php echo json_encode($editSku); ?>;
         if (editSku) {
@@ -1109,6 +1205,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
             url.searchParams.delete('message');
             url.searchParams.delete('error');
             url.searchParams.delete('edit');
+            url.searchParams.delete('add');
             window.history.replaceState(null, '', url.pathname + url.search);
         }
     });
