@@ -1,11 +1,9 @@
 <?php
 // exportOrder.php
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 include 'includes/connection.php';
 require 'lib/fpdf/fpdf.php';
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 // Make sure they’re logged in
 if (!isset($_SESSION['userID'])) {

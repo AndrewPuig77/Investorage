@@ -1,11 +1,8 @@
 <?php
 // logIn.php
-ini_set('session.gc_maxlifetime', 3600);
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 include 'includes/connection.php';
 include 'includes/indexElements.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 $email = "";
 $password = "";

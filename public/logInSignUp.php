@@ -1,10 +1,8 @@
 <?php
 // logInSignUp.php - sign-up form and handler
-session_start(); // Add session start at the beginning
+require_once __DIR__ . '/includes/bootstrap.php';
 include 'includes/connection.php';
 include 'includes/indexElements.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 // form state & errors
 $email = $password = $confirmPassword = $role =

@@ -1,10 +1,8 @@
 <?php
 // warehouseExport.php - Fixed version
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 include 'includes/connection.php';
 include 'includes/indexElements.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 // Check session properly
 if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {

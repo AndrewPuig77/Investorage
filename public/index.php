@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/includes/bootstrap.php';
 include 'includes/indexElements.php';
 echo $license;
 ?>

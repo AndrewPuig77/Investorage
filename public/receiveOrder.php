@@ -1,10 +1,8 @@
 <?php
 // receiveOrder.php - check a delivery against the order before adding it to inventory
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 include 'includes/connection.php';
 include 'includes/indexElements.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 if (!isset($_SESSION["userID"], $_SESSION["GroupID"])) {
     header("Location: logIn.php");

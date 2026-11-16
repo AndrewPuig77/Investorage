@@ -1,13 +1,11 @@
 <?php
 // exportWarehouseManagement.php - one export order as a page, CSV or PDF
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 ob_start(); // Prevent any output before PDF headers
 include 'includes/connection.php';
 require('lib/fpdf/fpdf.php');
 include 'includes/indexElements.php';
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 if (!isset($_SESSION["userID"], $_SESSION["GroupID"])) {
     header("Location: logIn.php");

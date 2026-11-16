@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+require_once __DIR__ . '/includes/bootstrap.php';
 
 // Check if this is a demo account before destroying session
 $isDemoAccount = isset($_SESSION['isDemoAccount']) && $_SESSION['isDemoAccount'];
