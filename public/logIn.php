@@ -29,6 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $detail = ($results && $results->num_rows == 1) ? $results->fetch_assoc() : null;
         // Passwords are stored as password_hash() hashes
         if ($detail && password_verify($password, $detail["password"])) {
+            // New session ID on sign-in, so an ID planted before login is useless
+            session_regenerate_id(true);
             $_SESSION["email"]    = $detail["email"];
             $_SESSION["userName"] = $detail["userName"];
             $_SESSION["userID"]   = $detail["UserID"];

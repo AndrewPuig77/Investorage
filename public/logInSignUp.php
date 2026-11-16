@@ -178,6 +178,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $stmt->close();
 
           // Auto-login the user by setting session variables
+          // New session ID on sign-in, so an ID planted before login is useless
+          session_regenerate_id(true);
           $_SESSION["email"]    = $email;
           $_SESSION["userName"] = $userName;
           $_SESSION["userID"]   = $newUserId;

@@ -125,6 +125,8 @@ try {
     $conn->commit();
 
     // Auto-login the demo user
+    // New session ID on sign-in, so an ID planted before login is useless
+    session_regenerate_id(true);
     $_SESSION["email"] = $demoEmail;
     $_SESSION["userName"] = $demoUserName;
     $_SESSION["userID"] = $User_Id;
