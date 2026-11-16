@@ -595,12 +595,14 @@ $nav = '
 
 // Logged-in navigation: sidebar app shell (styles in $head, .app-sidebar)
 $currentPage = basename($_SERVER['PHP_SELF']);
-$appNavLink = function ($href, $icon, $label, $alsoActive = []) use ($currentPage) {
-    $isActive = ($currentPage === $href || in_array($currentPage, $alsoActive, true));
+// $isActive overrides the filename match, for links that share a page (e.g. the Low stock filter)
+$appNavLink = function ($href, $icon, $label, $alsoActive = [], $isActive = null) use ($currentPage) {
+    $isActive = $isActive ?? ($currentPage === basename(parse_url($href, PHP_URL_PATH)) || in_array($currentPage, $alsoActive, true));
     return '<a href="' . $href . '"' . ($isActive ? ' class="active" aria-current="page"' : '') . '>'
         . '<i class="' . $icon . '" aria-hidden="true"></i>' . $label . '</a>';
 };
 
+$navLowStockView = $currentPage === 'searchInventory.php' && ($_GET['stock'] ?? '') === 'low';
 $navUserName = isset($_SESSION["userName"]) ? htmlspecialchars($_SESSION["userName"]) : "User";
 $navUserRole = isset($_SESSION["Role"]) ? htmlspecialchars($_SESSION["Role"]) : "";
 if (isset($_SESSION['isDemoAccount']) && $_SESSION['isDemoAccount']) {
@@ -616,9 +618,8 @@ $navActive = '
   <nav class="app-nav" aria-label="Main">
     ' . $appNavLink('activeHome.php', 'fas fa-th-large', 'Dashboard') . '
     <div class="app-nav-label">Inventory</div>
-    ' . $appNavLink('searchInventory.php', 'fas fa-boxes', 'All items') . '
-    ' . $appNavLink('addInventory.php', 'fas fa-plus', 'Add item') . '
-    ' . $appNavLink('lowstockReport.php', 'fas fa-exclamation-triangle', 'Low stock') . '
+    ' . $appNavLink('searchInventory.php', 'fas fa-boxes', 'All items', [], $currentPage === 'searchInventory.php' && !$navLowStockView) . '
+    ' . $appNavLink('searchInventory.php?stock=low', 'fas fa-exclamation-triangle', 'Low stock', [], $navLowStockView) . '
     <div class="app-nav-label">Orders</div>
     ' . $appNavLink('orderManagement.php', 'fas fa-exchange-alt', 'Orders', ['editOrder.php', 'receiveOrder.php', 'exportOrder.php', 'exportWarehouseView.php', 'exportWarehouseManagement.php']) . '
     ' . $appNavLink('orderImport.php', 'fas fa-file-import', 'Import order') . '
