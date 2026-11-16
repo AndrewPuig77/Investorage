@@ -110,6 +110,7 @@ $conn->close();
                   <?php if (!$isStaff): ?>
                     <form id="delete-<?php echo $i; ?>" action="actions/deleteExportOrder.php" method="post" class="d-none"
                           data-confirm="Delete the record of export <?php echo $id; ?>? Stock that was sent is not added back.">
+                        <?php echo csrfField(); ?>
                       <input type="hidden" name="ExportOrderID" value="<?php echo $id; ?>">
                     </form>
                   <?php endif; ?>

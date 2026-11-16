@@ -328,6 +328,7 @@ function cleanInput($data) {
       <?php endif; ?>
 
       <form class="auth-form" action="logInSignUp.php" method="post" novalidate>
+          <?php echo csrfField(); ?>
         <fieldset>
           <legend class="form-label">I want to</legend>
           <div class="role-options">

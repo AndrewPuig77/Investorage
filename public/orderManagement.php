@@ -173,6 +173,7 @@ function formatDay($value) {
                     </ul>
                   </div>
                   <form id="delete-<?php echo $i; ?>" action="actions/removeOrder.php" method="post" class="d-none" data-confirm="Delete order <?php echo $id; ?>? This can't be undone.">
+                      <?php echo csrfField(); ?>
                     <input type="hidden" name="orderID" value="<?php echo $id; ?>">
                   </form>
                 </div>

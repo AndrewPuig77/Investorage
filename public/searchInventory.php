@@ -818,6 +818,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
         <?php endif; ?>
 
         <form method="post" action="actions/removeItems.php" id="bulkForm">
+            <?php echo csrfField(); ?>
             <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
 
             <section class="results" id="results" aria-label="Inventory items">
@@ -968,6 +969,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
         </div>
         <div class="offcanvas-body">
             <form class="edit-form" method="post" action="actions/updateItem.php" id="editForm">
+                <?php echo csrfField(); ?>
                 <input type="hidden" name="sku" id="editSkuInput">
                 <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
 
@@ -1021,6 +1023,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
     <div class="modal fade" id="restockModal" tabindex="-1" aria-labelledby="restockTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <form class="modal-content restock" method="post" action="actions/createRestockOrder.php" id="restockForm">
+                <?php echo csrfField(); ?>
                 <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
                 <div class="modal-header">
                     <div>
@@ -1066,6 +1069,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
         </div>
         <div class="offcanvas-body">
             <form class="edit-form" method="post" action="actions/addItem.php" id="addForm">
+                <?php echo csrfField(); ?>
                 <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
 
                 <div class="row g-3">

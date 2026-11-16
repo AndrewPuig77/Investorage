@@ -127,6 +127,7 @@ $isPending = $order['OrderStatus'] === 'pending';
         <?php endif; ?>
 
         <form action="actions/updateOrder.php" method="post" id="orderForm" class="panel">
+            <?php echo csrfField(); ?>
             <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($orderID); ?>">
             <div class="panel-bar">
                 <h2 class="panel-title">Items</h2>

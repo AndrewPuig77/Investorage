@@ -253,6 +253,7 @@ $changeStyles = [
                 <h1>Inventory report</h1>
             </div>
             <form action="generateInventoryReportPDF.php" method="post" target="_blank">
+                <?php echo csrfField(); ?>
                 <input type="hidden" name="date_from" value="<?php echo htmlspecialchars($dateFrom); ?>">
                 <input type="hidden" name="date_to" value="<?php echo htmlspecialchars($dateTo); ?>">
                 <button type="submit" class="btn btn-secondary"><i class="fas fa-file-pdf" aria-hidden="true"></i> Download PDF</button>

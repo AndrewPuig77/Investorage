@@ -161,6 +161,7 @@ $conn->close();
 
         <?php if (!empty($inventory)): ?>
         <form action="actions/processExportOrder.php" method="post" class="export-form" id="exportForm" novalidate>
+            <?php echo csrfField(); ?>
             <div class="destination">
                 <label for="location" class="form-label">Where is it going?</label>
                 <input type="text" name="location" id="location" class="form-control" placeholder="e.g. Branch Office - New York" required>

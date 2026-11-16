@@ -166,6 +166,7 @@ foreach ($items as $item) {
             </section>
         <?php else: ?>
         <form action="actions/confirmOrder.php" method="post" id="receiveForm" class="panel" novalidate>
+            <?php echo csrfField(); ?>
             <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($orderID); ?>">
 
             <div class="panel-bar">

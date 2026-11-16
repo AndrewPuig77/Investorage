@@ -65,6 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php if (!empty($emailError)) { echo '<div class="alert alert-danger">' . $emailError . '</div>'; } ?>
     <?php if (!empty($passwordError)) { echo '<div class="alert alert-danger">' . $passwordError . '</div>'; } ?>
     <form action="logIn.php" method="post">
+        <?php echo csrfField(); ?>
       <div class="mb-3">
         <input type="email" name="email" class="form-control" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>">
       </div>

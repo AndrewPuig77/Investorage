@@ -272,6 +272,7 @@ if (!isset($_SESSION["userID"])) {
     <details class="fallback">
       <summary>Having trouble? Upload the file directly instead</summary>
       <form action="actions/processOrderImport.php" method="post" enctype="multipart/form-data">
+          <?php echo csrfField(); ?>
         <label for="orderFile" class="visually-hidden">Order file (CSV or JSON)</label>
         <input type="file" name="orderFile" id="orderFile" class="form-control" accept=".csv,.json" required>
         <button type="submit" class="btn btn-secondary">Upload and import</button>
