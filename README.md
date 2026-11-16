@@ -3,6 +3,8 @@
 
 A comprehensive web-based inventory management platform designed for small-to-medium enterprises, featuring real-time tracking, intelligent analytics, and seamless team collaboration.
 
+**🔗 Live demo:** [Open a demo warehouse](https://investorage.infinityfree.me/actions/createDemoAccount.php) (sample data, no sign-up) · [Home page](https://investorage.infinityfree.me/)
+
 [![PHP](https://img.shields.io/badge/PHP-8%2B-777BB4?style=flat-square&logo=php)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=flat-square&logo=mysql)](https://mysql.com)
 [![HTML5](https://img.shields.io/badge/HTML5-Latest-E34F26?style=flat-square&logo=html5)](https://developer.mozilla.org/en-US/docs/Web/HTML)
