@@ -1,1100 +1,318 @@
 <?php
+// help.php - how to use Investorage; open to everyone, with the app sidebar when signed in
 require_once __DIR__ . '/includes/bootstrap.php';
-include 'includes/connection.php';
 include 'includes/indexElements.php';
+
+$isSignedIn = isset($_SESSION["userID"], $_SESSION["GroupID"]);
+echo $license;
 ?>
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <?php echo $head; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help & Documentation – Inventory & Order Management System</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Help | Investorage</title>
     <style>
-        :root {
-            --bg-primary: #0E1116;
-            --bg-secondary: #12161C;
-            --bg-tertiary: #161A21;
-            --accent-primary: #4A86C5;
-            --accent-secondary: #6EA8DE;
-            --text-primary: #E6E9EE;
-            --text-secondary: #9AA4B2;
-            --text-muted: #8A94A3;
-            --border-color: #262C36;
-            --success-color: #4CB782;
-            --warning-color: #E0A23B;
-            --danger-color: #E5676B;
-            --info-color: #6EA8DE;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            --border-radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .help {
+            max-width: 900px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        .help-container {
-            max-width: 1200px;
+        .public-help {
+            padding-top: 100px;
             margin: 0 auto;
-            padding: 2rem;
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
         }
 
-        .sidebar {
-            position: sticky;
-            top: 2rem;
-            height: fit-content;
-            background: var(--bg-tertiary);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
+        .help-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 44px;
+            max-width: 480px;
+            padding: 0 14px;
             border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .sidebar-header i {
-            font-size: 1.5rem;
-            color: var(--accent-primary);
-        }
-
-        .sidebar-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .search-box {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
+            border-radius: 10px;
+            background: var(--card-bg);
             color: var(--text-muted);
-            font-size: 0.9rem;
         }
 
-        .nav-menu {
-            list-style: none;
+        .help-search:focus-within {
+            border-color: var(--primary-color);
         }
 
-        .nav-item {
-            margin-bottom: 0.5rem;
+        .help-search input {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0.875rem;
         }
 
-        .nav-link {
+        .toc {
             display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .toc a {
+            display: inline-flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
+            min-height: 36px;
+            padding: 0 14px;
+            border: 1px solid #2E3541;
+            border-radius: 999px;
             color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: var(--transition);
-            font-size: 0.9rem;
+            font-size: 0.8125rem;
             font-weight: 500;
         }
 
-        .nav-link:hover, .nav-link.active {
-            background: rgba(0, 102, 255, 0.1);
-            color: var(--accent-primary);
-            transform: translateX(4px);
-        }
-
-        .nav-link i {
-            width: 16px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .main-content {
-            background: var(--bg-tertiary);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            min-height: 80vh;
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .page-header i {
-            font-size: 2rem;
-            color: var(--accent-primary);
-        }
-
-        .page-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section {
-            margin-bottom: 3rem;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: var(--transition);
-        }
-
-        .section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .section.hidden {
-            display: none;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            cursor: pointer;
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-
-        .section-header:hover {
-            background: var(--border-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .section-header i {
-            font-size: 1.5rem;
-            color: var(--accent-primary);
-            transition: var(--transition);
-        }
-
-        .section-header.collapsed i {
-            transform: rotate(-90deg);
-        }
-
-        .section-header h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .toc a:hover {
             color: var(--text-primary);
-            flex: 1;
+            border-color: #3A4352;
         }
 
-        .section-content {
-            padding: 0 1rem;
-            max-height: 1000px;
-            overflow: hidden;
-            transition: var(--transition);
+        .help-section {
+            scroll-margin-top: 24px;
         }
 
-        .section-content.collapsed {
-            max-height: 0;
-            padding: 0 1rem;
+        .help-section h2 {
+            margin: 0 0 12px;
+            font-size: 1.25rem;
+            letter-spacing: -0.01em;
         }
 
-        .section p {
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-            line-height: 1.7;
-        }
-
-        .section ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .section li {
-            margin-bottom: 0.75rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .section li strong {
-            color: var(--accent-primary);
+        .help-section h3 {
+            margin: 20px 0 8px;
+            font-size: 1rem;
             font-weight: 600;
         }
 
-        .code-block {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.9rem;
+        .help-section p,
+        .help-section li {
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .help-section strong {
             color: var(--text-primary);
-            overflow-x: auto;
-            position: relative;
         }
 
-        .code-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
+        .help-section ul,
+        .help-section ol {
+            padding-left: 20px;
+            margin-bottom: 0;
         }
 
-        .code-lang {
-            color: var(--accent-primary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
+        .help-section li + li {
+            margin-top: 6px;
         }
 
-        .copy-btn {
-            background: var(--accent-primary);
-            border: none;
+        .help-section code {
+            padding: 1px 6px;
             border-radius: 4px;
-            padding: 0.25rem 0.75rem;
-            color: white;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: var(--transition);
+            background: var(--card-hover);
+            color: #9CC4EA;
+            font-size: 0.8125rem;
         }
 
-        .copy-btn:hover {
-            background: var(--accent-secondary);
-        }
-
-        .alert {
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            border-left: 4px solid;
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .alert-info {
-            background: rgba(0, 170, 255, 0.1);
-            border-left-color: var(--info-color);
-            color: var(--text-primary);
-        }
-
-        .alert-warning {
-            background: rgba(255, 170, 0, 0.1);
-            border-left-color: var(--warning-color);
-            color: var(--text-primary);
-        }
-
-        .alert-success {
-            background: rgba(0, 255, 136, 0.1);
-            border-left-color: var(--success-color);
-            color: var(--text-primary);
-        }
-
-        .alert i {
-            font-size: 1.2rem;
-            margin-top: 0.1rem;
-        }
-
-        .alert-info i { color: var(--info-color); }
-        .alert-warning i { color: var(--warning-color); }
-        .alert-success i { color: var(--success-color); }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .feature-card {
-            background: var(--bg-secondary);
+        .help-section pre {
+            margin: 8px 0 0;
+            padding: 14px 16px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: var(--transition);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            border-color: var(--accent-primary);
-        }
-
-        .feature-card i {
-            font-size: 2rem;
-            color: var(--accent-primary);
-            margin-bottom: 1rem;
-        }
-
-        .feature-card h4 {
+            border-radius: 10px;
+            background: var(--dark-bg);
             color: var(--text-primary);
-            margin-bottom: 0.75rem;
-            font-weight: 600;
+            font-size: 0.8125rem;
+            overflow-x: auto;
         }
 
-        .feature-card p {
+        .note {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: rgba(110,168,222,.08);
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.875rem;
         }
 
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .breadcrumb a {
-            color: var(--accent-primary);
-            text-decoration: none;
-        }
-
-        .no-results {
+        .perm-table td:not(:first-child),
+        .perm-table th:not(:first-child) {
             text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
-            display: none;
+            width: 110px;
         }
 
-        .no-results.hidden {
-            display: none;
-        }
-
-        .no-results:not(.hidden) {
-            display: block;
-        }
-
-        .no-results i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
-        }
-
-        @media (max-width: 768px) {
-            .help-container {
-                grid-template-columns: 1fr;
-                padding: 1rem;
-            }
-            
-            .sidebar {
-                position: relative;
-                top: auto;
-                order: 2;
-            }
-
-            .main-content {
-                order: 1;
-            }
-
-            .page-header h1 {
-                font-size: 2rem;
-            }
-
-            .section-header h2 {
-                font-size: 1.25rem;
-            }
-        }
-
-        .scroll-to-top {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: var(--accent-primary);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            opacity: 0;
-            transform: translateY(20px);
-            box-shadow: var(--shadow);
-        }
-
-        .scroll-to-top.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .scroll-to-top:hover {
-            background: var(--accent-secondary);
-            transform: translateY(-4px);
-        }
+        .yes { color: #6FD3A1; }
+        .no { color: #F5999B; }
     </style>
 </head>
 <body>
-    <?php echo $navActive; ?>
-    <?php echo $tagline; ?>
+    <?php echo $isSignedIn ? $navActive : $nav; ?>
 
-    <div class="help-container">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-book"></i>
-                <h3>Documentation</h3>
+    <main class="page help<?php echo $isSignedIn ? '' : ' public-help'; ?>">
+        <header class="page-header">
+            <div class="titles">
+                <p class="page-eyebrow">Help</p>
+                <h1>How Investorage works</h1>
             </div>
+        </header>
 
-            <div class="search-box">
-                <input type="text" class="search-input" placeholder="Search help topics..." id="helpSearch">
-                <i class="fas fa-search search-icon"></i>
-            </div>
+        <label class="help-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <span class="visually-hidden">Search help</span>
+            <input type="search" id="helpSearch" placeholder="Search help, e.g. receive, low stock, CSV">
+        </label>
 
-            <ul class="nav-menu" id="navMenu">
-                <li class="nav-item">
-                    <a href="#overview" class="nav-link active" data-section="overview">
-                        <i class="fas fa-home"></i>
-                        Overview
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#roles" class="nav-link" data-section="roles">
-                        <i class="fas fa-users"></i>
-                        Warehouse Groups & Roles
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#import" class="nav-link" data-section="import">
-                        <i class="fas fa-upload"></i>
-                        Order Import
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#orders" class="nav-link" data-section="orders">
-                        <i class="fas fa-clipboard-list"></i>
-                        Order Management
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#inventory" class="nav-link" data-section="inventory">
-                        <i class="fas fa-boxes"></i>
-                        Inventory Management
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#reports" class="nav-link" data-section="reports">
-                        <i class="fas fa-chart-bar"></i>
-                        Inventory Report
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#search" class="nav-link" data-section="search">
-                        <i class="fas fa-search"></i>
-                        Search Inventory
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#export" class="nav-link" data-section="export">
-                        <i class="fas fa-download"></i>
-                        Export Orders
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#lowstock" class="nav-link" data-section="lowstock">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Low Stock Report
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#logs" class="nav-link" data-section="logs">
-                        <i class="fas fa-history"></i>
-                        Inventory Log
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#troubleshooting" class="nav-link" data-section="troubleshooting">
-                        <i class="fas fa-tools"></i>
-                        Troubleshooting
-                    </a>
-                </li>
+        <nav class="toc" aria-label="Help topics">
+            <a href="#start">Getting started</a>
+            <a href="#inventory">Inventory</a>
+            <a href="#lowstock">Low stock &amp; restocking</a>
+            <a href="#incoming">Incoming orders</a>
+            <a href="#outgoing">Outgoing orders</a>
+            <a href="#reports">Reports</a>
+            <a href="#roles">Roles</a>
+            <a href="#problems">Problems</a>
+        </nav>
+
+        <section class="panel panel-pad help-section" id="start">
+            <h2>Getting started</h2>
+            <p>Everyone in a warehouse shares the same stock, orders and history.</p>
+            <ul>
+                <li><strong>Start a new warehouse:</strong> sign up and choose <em>Start a new warehouse</em>. You become its admin, and you pick a warehouse name and password.</li>
+                <li><strong>Join a warehouse:</strong> sign up, choose <em>Join a warehouse</em>, and enter the name and password your admin gives you. You join as staff.</li>
+                <li><strong>Just looking?</strong> <a href="actions/createDemoAccount.php">Try the demo</a>. It opens a sample warehouse with items, orders and an export already in it, and deletes everything when you sign out.</li>
             </ul>
+        </section>
+
+        <section class="panel panel-pad help-section" id="inventory">
+            <h2>Inventory</h2>
+            <p>Everything about your items happens on <a href="searchInventory.php">All items</a>.</p>
+            <h3>Find an item</h3>
+            <ul>
+                <li>Type in the search box to match a name, SKU, category or description. The list updates as you type.</li>
+                <li>Narrow it with the category and status menus, or click <strong>Low stock</strong>.</li>
+                <li>Click a column heading to sort by it; click again to reverse.</li>
+            </ul>
+            <h3>Add, edit and remove</h3>
+            <ul>
+                <li><strong>Add item</strong> opens a panel for the SKU, name, category, price, stock, warning level and status. Use <strong>Save and add another</strong> to enter several in a row. If the SKU already exists, that item opens instead, so you never get duplicates.</li>
+                <li><strong>Edit</strong> on a row opens the same panel with the item's price, stock (with − and + buttons), warning level and status.</li>
+                <li>To remove, use the bin on a row, <strong>Remove this item</strong> in the edit panel, or tick several rows and choose <strong>Remove selected</strong>. You're always asked first, and removals are logged.</li>
+            </ul>
+            <h3>Download</h3>
+            <p><strong>Download CSV</strong> saves whatever you're looking at, every page of it: all items, a search, a category or the low stock view.</p>
+        </section>
+
+        <section class="panel panel-pad help-section" id="lowstock">
+            <h2>Low stock and restocking</h2>
+            <p>Every item has a <strong>warning level</strong>. Its health on the list follows from that:</p>
+            <ul>
+                <li><span class="pill pill-low">Low</span> stock is at or below the warning level.</li>
+                <li><span class="pill pill-watch">Watch</span> stock is within 10 of the warning level.</li>
+                <li><span class="pill pill-ok">Healthy</span> everything else.</li>
+            </ul>
+            <p><a href="searchInventory.php?stock=low">Low stock</a> in the sidebar shows Low and Watch items with a count of each.</p>
+            <h3>Reorder</h3>
+            <ol>
+                <li>Click <strong>Reorder these</strong> in the low stock summary, or tick items on any view and choose <strong>Create restock order</strong>.</li>
+                <li>Each item is suggested enough to bring it up to three times its warning level. Change the quantities, prices and expected delivery date as needed.</li>
+                <li><strong>Create order</strong> adds it to <a href="orderManagement.php">Incoming orders</a>, waiting for delivery.</li>
+            </ol>
+        </section>
+
+        <section class="panel panel-pad help-section" id="incoming">
+            <h2>Incoming orders</h2>
+            <p>Stock arriving from suppliers. Find them under <a href="orderManagement.php">Orders › Incoming</a>.</p>
+            <h3>Import an order file</h3>
+            <p>On <a href="orderImport.php">Import order</a>, download the CSV or JSON template, fill one row per product, and upload it. The preview marks any row with a problem and says what's wrong; only the ready rows are imported.</p>
+            <p>Columns: <code>SKU</code>, <code>Name</code>, <code>Category</code>, <code>Description</code>, <code>SalesPrice</code>, <code>Stock</code> (quantity ordered), <code>LowStockWarning</code>, <code>Status</code>. Optional: <code>OrderID</code>, to use your own order number. Status must be one of In-Stock, Ordered, Backordered, Reserved or Dropped.</p>
+            <pre>SKU,Name,Category,Description,SalesPrice,Stock,LowStockWarning,Status
+SKU101,Desk Fan,Furniture,Quiet 3-speed fan,24.99,40,8,Ordered
+SKU102,USB Cable,Electronics,1m braided cable,6.49,200,30,Ordered</pre>
+            <h3>Receive a delivery</h3>
+            <ol>
+                <li>When the delivery arrives, click <strong>Mark received</strong>.</li>
+                <li>Check each line against what came. Change the quantity received or the unit price for anything different. Each row says <em>As ordered</em>, <em>Short</em>, <em>Extra</em>, <em>Not received</em> or <em>Price changed</em>, and the total updates.</li>
+                <li><strong>Confirm receipt</strong> adds what arrived to inventory, saves the corrected order and total, and logs every difference.</li>
+            </ol>
+            <p>Before it arrives you can <strong>Edit</strong> a pending order, or delete it from the ⋯ menu. View, CSV and PDF are in the ⋯ menu too.</p>
+        </section>
+
+        <section class="panel panel-pad help-section" id="outgoing">
+            <h2>Outgoing orders</h2>
+            <p>Stock sent to another location, under <a href="exportWarehouseView.php">Orders › Outgoing</a>.</p>
+            <ul>
+                <li>Admins create one with <strong>New export</strong>: enter where it's going, then a quantity for each item to send. You can't send more than you have.</li>
+                <li>Creating an export takes those quantities out of inventory straight away.</li>
+                <li>Anyone can view an export and download it as CSV. PDFs and deleting are for admins.</li>
+                <li>Deleting an export only removes the record. Stock that was sent is not added back.</li>
+            </ul>
+        </section>
+
+        <section class="panel panel-pad help-section" id="reports">
+            <h2>Reports</h2>
+            <p><a href="inventoryReport.php">Reports</a> (admins) show:</p>
+            <ul>
+                <li><strong>Right now:</strong> products, units on hand, inventory value and low stock count.</li>
+                <li><strong>In this period:</strong> incoming and outgoing orders, and every change from the activity log. Pick a period, or <strong>Custom</strong> for exact dates.</li>
+                <li><strong>Current stock:</strong> every item, lowest stock first.</li>
+            </ul>
+            <p><strong>Download PDF</strong> creates the same report for the period you picked.</p>
+            <h3>The activity log</h3>
+            <p>Every change is recorded with who made it and when: <span class="pill pill-ok">Add</span> <span class="pill pill-info">Update</span> <span class="pill pill-low">Removed</span> <span class="pill pill-watch">Import</span> (one line per item received, including shortfalls and price changes) and <span class="pill pill-info">Export</span>.</p>
+        </section>
+
+        <section class="panel help-section" id="roles">
+            <div class="panel-pad" style="padding-bottom: 8px"><h2>Roles</h2></div>
+            <div class="table-wrap">
+                <table class="data-table perm-table" style="min-width: 480px">
+                    <thead><tr><th>What you can do</th><th>Admin</th><th>Staff</th></tr></thead>
+                    <tbody>
+                        <tr><td>Find, add, edit and remove items</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                        <tr><td>Import and receive incoming orders</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                        <tr><td>View, edit or delete incoming orders</td><td class="yes">Any</td><td class="yes">Their own</td></tr>
+                        <tr><td>Create restock orders</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                        <tr><td>View outgoing orders and download CSVs</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                        <tr><td>Create and delete outgoing orders, download their PDFs</td><td class="yes">Yes</td><td class="no">No</td></tr>
+                        <tr><td>Reports</td><td class="yes">Yes</td><td class="no">No</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel panel-pad help-section" id="problems">
+            <h2>Problems</h2>
+            <ul>
+                <li><strong>"This form expired":</strong> the page was open too long or in another session. Refresh the page and try again. This protects your account from other websites submitting forms for you.</li>
+                <li><strong>An import row says something is missing:</strong> check the column names match the template exactly, including capitals. Commas inside a value split it into two columns, so leave them out of names and descriptions, or use the JSON template.</li>
+                <li><strong>Can't log in:</strong> check the email you signed up with. Each email can have one account.</li>
+                <li><strong>Staff can't see Reports or New export:</strong> those are for admins.</li>
+                <li><strong>The demo is empty after signing out:</strong> demo data is deleted when you sign out. <a href="actions/createDemoAccount.php">Start a new demo</a>.</li>
+            </ul>
+        </section>
+
+        <div class="empty-state panel" id="noResults" hidden>
+            <h2>Nothing matches that search</h2>
+            <p>Try another word, or pick a topic above.</p>
         </div>
+    </main>
 
-        <div class="main-content">
-            <div class="page-header">
-                <i class="fas fa-question-circle"></i>
-                <h1>Help & Documentation</h1>
-            </div>
-
-            <div class="breadcrumb">
-                <a href="/">Home</a>
-                <i class="fas fa-chevron-right"></i>
-                <span>Help & Documentation</span>
-            </div>
-
-            <div class="section visible" id="overview">
-                <div class="section-header" data-target="overview-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>System Overview</h2>
-                </div>
-                <div class="section-content" id="overview-content">
-                    <p>This Inventory & Order Management System helps manage products and inventory through importing, editing, confirming, exporting, and generating reports. The system is designed for warehouse teams to efficiently track and manage their inventory.</p>
-                    
-                    <div class="feature-grid">
-                        <div class="feature-card">
-                            <i class="fas fa-upload"></i>
-                            <h4>Order Import</h4>
-                            <p>Upload orders in CSV or JSON format with automatic validation and duplicate detection.</p>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h4>Order Management</h4>
-                            <p>View, confirm, edit, or delete orders with comprehensive tracking and export options.</p>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-boxes"></i>
-                            <h4>Inventory Management</h4>
-                            <p>Automatically sync confirmed orders, manually manage items, and export to locations.</p>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-chart-bar"></i>
-                            <h4>Inventory Report</h4>
-                            <p>Generate real-time reports with filters and PDF export capabilities.</p>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            <strong>Getting Started:</strong> Navigate through the different sections using the sidebar menu to learn about specific features. Use the search box to quickly find information about particular topics.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="roles">
-                <div class="section-header" data-target="roles-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Warehouse Groups & Roles</h2>
-                </div>
-                <div class="section-content" id="roles-content">
-                    <p>The system supports different user roles with specific permissions to ensure secure and organized warehouse management.</p>
-                    
-                    <ul>
-                        <li><strong>Admin:</strong> Creates the warehouse group and has full access to import/export, reports, and data management. Can generate PDF reports and delete exports.</li>
-                        <li><strong>Employee:</strong> Can access and manage shared data but cannot delete exports or generate reports. Perfect for day-to-day operations.</li>
-                        <li><strong>Group Sharing:</strong> All users in the same group see the same inventory, orders, reports, and logs, ensuring team synchronization.</li>
-                    </ul>
-
-                    <div class="alert alert-warning">
-                        <i class="fas fa-shield-alt"></i>
-                        <div>
-                            <strong>Security Note:</strong> Role-based access ensures that sensitive operations like report generation and data deletion are restricted to authorized administrators.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="import">
-                <div class="section-header" data-target="import-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Order Import</h2>
-                </div>
-                <div class="section-content" id="import-content">
-                    <p>Upload orders from CSV or JSON files. The system validates data and prevents duplicate entries automatically.</p>
-                    
-                    <h4>Required Fields:</h4>
-                    <ul>
-                        <li><strong>SKU:</strong> Unique product identifier</li>
-                        <li><strong>Name:</strong> Product name</li>
-                        <li><strong>Category:</strong> Product category</li>
-                        <li><strong>Description:</strong> Product description</li>
-                        <li><strong>SalesPrice:</strong> Product price</li>
-                        <li><strong>Stock:</strong> Quantity available</li>
-                        <li><strong>LowStockWarning:</strong> Minimum stock threshold</li>
-                        <li><strong>Status:</strong> Product status (InStock, Ordered, etc.)</li>
-                    </ul>
-
-                    <h4>Optional Fields:</h4>
-                    <ul>
-                        <li><strong>OrderID:</strong> Auto-generated if not provided</li>
-                        <li><strong>ExpectedDeliveryDate:</strong> Auto-generated if not provided</li>
-                    </ul>
-
-                    <div class="code-block">
-                        <div class="code-header">
-                            <span class="code-lang">CSV Example</span>
-                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        </div>
-                        <pre>OrderID,ExpectedDeliveryDate,SKU,Name,Category,Description,SalesPrice,Stock,LowStockWarning,Status
-ORD001,2025-05-01,SKU001,Widget,Tools,Durable widget,19.99,100,10,InStock
-ORD002,2025-05-02,SKU002,Gadget,Electronics,Smart gadget,49.99,50,5,InStock</pre>
-                    </div>
-
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i>
-                        <div>
-                            <strong>Import Tips:</strong> Imported orders are set to <em>pending</em> status and can be confirmed later. The system automatically ignores duplicate entries based on SKU.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="orders">
-                <div class="section-header" data-target="orders-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Order Management</h2>
-                </div>
-                <div class="section-content" id="orders-content">
-                    <p>Comprehensive order management tools for handling imported orders efficiently.</p>
-                    
-                    <ul>
-                        <li><strong>Confirm:</strong> Adds stock quantities to the main inventory system</li>
-                        <li><strong>Edit:</strong> Modify order items before confirming them</li>
-                        <li><strong>Delete:</strong> Remove unconfirmed orders that are no longer needed</li>
-                        <li><strong>Export:</strong> Export orders in multiple formats (CSV, PDF, Web View)</li>
-                    </ul>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-lightbulb"></i>
-                        <div>
-                            <strong>Workflow Tip:</strong> Review and edit orders before confirming them. Once confirmed, the stock is added to inventory and the order cannot be easily reversed.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="inventory">
-                <div class="section-header" data-target="inventory-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Inventory Management</h2>
-                </div>
-                <div class="section-content" id="inventory-content">
-                    <p>Complete inventory control with manual and automated stock management capabilities.</p>
-                    
-                    <ul>
-                        <li><strong>Add Item:</strong> Manually add new inventory items using the Add Inventory form</li>
-                        <li><strong>Change Inventory:</strong> Update price, stock quantities, or status for any existing item</li>
-                        <li><strong>Remove Items:</strong> Delete selected items or clear all inventory with proper confirmation</li>
-                        <li><strong>Export to Location:</strong> Select SKUs and quantities, specify destination. Stock is automatically deducted and export is logged</li>
-                    </ul>
-
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>
-                            <strong>Important:</strong> Stock exports permanently reduce inventory quantities. Ensure accuracy before confirming exports to prevent stock discrepancies.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="reports">
-                <div class="section-header" data-target="reports-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Inventory Report</h2>
-                </div>
-                <div class="section-content" id="reports-content">
-                    <p>Generate comprehensive reports for inventory analysis and business intelligence.</p>
-                    
-                    <ul>
-                        <li><strong>Current Inventory:</strong> View all items with stock levels and total value calculations</li>
-                        <li><strong>Recent Inventory Changes:</strong> Track all modifications (add, update, confirmImport, export, etc.)</li>
-                        <li><strong>Imports & Exports Summary:</strong> Overview of all import and export activities</li>
-                        <li><strong>Date Filtering:</strong> Filter reports by 7, 30, 90, 180 days or 1 year periods</li>
-                        <li><strong>PDF Export:</strong> Generate professional PDF reports (Admin users only)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section" id="search">
-                <div class="section-header" data-target="search-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Search Inventory</h2>
-                </div>
-                <div class="section-content" id="search-content">
-                    <p>Powerful search and filtering capabilities to quickly locate inventory items.</p>
-                    
-                    <ul>
-                        <li><strong>Text Search:</strong> Search by SKU, name, category, or description</li>
-                        <li><strong>Category Filter:</strong> Filter by specific product categories</li>
-                        <li><strong>Status Filter:</strong> Filter by inventory status</li>
-                        <li><strong>Sorting:</strong> Sort results by any column (name, price, stock, etc.)</li>
-                        <li><strong>Pagination:</strong> Navigate through large inventory sets efficiently</li>
-                    </ul>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-search"></i>
-                        <div>
-                            <strong>Search applies to all items within your warehouse group, ensuring team-wide visibility of inventory data.</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="export">
-                <div class="section-header" data-target="export-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Export Orders</h2>
-                </div>
-                <div class="section-content" id="export-content">
-                    <p>Export inventory items to external locations with automatic stock management.</p>
-                    
-                    <ul>
-                        <li><strong>SKU Selection:</strong> Choose specific items and quantities to export</li>
-                        <li><strong>Destination Input:</strong> Specify the export destination</li>
-                        <li><strong>Automatic Stock Reduction:</strong> Stock levels are automatically updated</li>
-                        <li><strong>Export Logging:</strong> All export activities are logged for audit trails</li>
-                        <li><strong>Permission Control:</strong> Employees can view exports but cannot create or delete them</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section" id="lowstock">
-                <div class="section-header" data-target="lowstock-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Low Stock Report</h2>
-                </div>
-                <div class="section-content" id="lowstock-content">
-                    <p>Monitor inventory levels and receive alerts for items requiring restocking.</p>
-                    
-                    <ul>
-                        <li><strong>Threshold Monitoring:</strong> Shows all items below or near the low stock threshold</li>
-                        <li><strong>Team Visibility:</strong> Shared between all users in the same warehouse</li>
-                        <li><strong>Priority Planning:</strong> Helps prioritize restocking efforts</li>
-                        <li><strong>Real-time Updates:</strong> Automatically updates as inventory levels change</li>
-                    </ul>
-
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>
-                            <strong>Proactive Management:</strong> Regular monitoring of low stock reports helps prevent stockouts and maintains optimal inventory levels.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="logs">
-                <div class="section-header" data-target="logs-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Inventory Log (Recent Changes)</h2>
-                </div>
-                <div class="section-content" id="logs-content">
-                    <p>Track all inventory changes with detailed logging for complete audit trails.</p>
-                    
-                    <h4>Log Entry Types:</h4>
-                    <ul>
-                        <li><strong>add:</strong> New item added to inventory</li>
-                        <li><strong>updateInventory:</strong> Existing inventory item updated</li>
-                        <li><strong>removeAll/removeSelected:</strong> Inventory item(s) deleted</li>
-                        <li><strong>confirmImport:</strong> Order confirmation added stock to inventory</li>
-                        <li><strong>export:</strong> Stock was deducted due to export operation</li>
-                    </ul>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-history"></i>
-                        <div>
-                            <strong>Audit Trail:</strong> All changes are timestamped and associated with the user who made them, providing complete accountability for inventory modifications.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section" id="troubleshooting">
-                <div class="section-header" data-target="troubleshooting-content">
-                    <i class="fas fa-chevron-down"></i>
-                    <h2>Troubleshooting & Support</h2>
-                </div>
-                <div class="section-content" id="troubleshooting-content">
-                    <p>Common issues and solutions to help you resolve problems quickly.</p>
-                    
-                    <h4>Common Issues:</h4>
-                    <ul>
-                        <li><strong>Login Issues:</strong> Ensure you're logged in with valid credentials</li>
-                        <li><strong>Import Failures:</strong> Double-check CSV headers match required format exactly</li>
-                        <li><strong>Permission Denied:</strong> Only Admins can confirm imports, export inventory, and generate PDF reports</li>
-                        <li><strong>Missing Data:</strong> Employees can still edit, search, and view inventory and logs</li>
-                        <li><strong>File Format:</strong> Ensure CSV files use proper encoding (UTF-8) and formatting</li>
-                    </ul>
-
-                    <h4>Best Practices:</h4>
-                    <ul>
-                        <li><strong>Regular Backups:</strong> Export inventory data regularly for backup purposes</li>
-                        <li><strong>Data Validation:</strong> Always review imported data before confirming</li>
-                        <li><strong>User Training:</strong> Ensure all team members understand their role permissions</li>
-                        <li><strong>Stock Monitoring:</strong> Check low stock reports frequently to prevent stockouts</li>
-                    </ul>
-
-                    <div class="alert alert-success">
-                        <i class="fas fa-life-ring"></i>
-                        <div>
-                            <strong>Need More Help?</strong> If you continue to experience issues, contact your system administrator or check the system logs for more detailed error information.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="noResults" class="no-results hidden">
-                <i class="fas fa-search"></i>
-                <h3>No Results Found</h3>
-                <p>Try adjusting your search terms or browse the navigation menu.</p>
-            </div>
-        </div>
-    </div>
-
-    <button class="scroll-to-top" id="scrollToTop">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <?php echo $footer; ?>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Navigation
-            const navLinks = document.querySelectorAll('.nav-link');
-            const sections = document.querySelectorAll('.section');
-            const searchInput = document.getElementById('helpSearch');
-            const noResults = document.getElementById('noResults');
-
-            // Handle navigation clicks
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetSection = this.getAttribute('data-section');
-                    
-                    // Update active nav
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show target section
-                    showSection(targetSection);
-                    
-                    // Scroll to top of content
-                    document.querySelector('.main-content').scrollTop = 0;
-                });
+    document.addEventListener('DOMContentLoaded', function () {
+        const sections = Array.from(document.querySelectorAll('.help-section'));
+        const noResults = document.getElementById('noResults');
+        document.getElementById('helpSearch').addEventListener('input', function () {
+            const words = this.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+            let shown = 0;
+            sections.forEach(function (section) {
+                const text = section.textContent.toLowerCase();
+                const match = words.every(function (w) { return text.includes(w); });
+                section.hidden = !match;
+                if (match) shown++;
             });
-
-            // Collapsible sections
-            document.querySelectorAll('.section-header').forEach(header => {
-                header.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-target');
-                    const content = document.getElementById(targetId);
-                    const icon = this.querySelector('i');
-                    
-                    if (content.classList.contains('collapsed')) {
-                        content.classList.remove('collapsed');
-                        header.classList.remove('collapsed');
-                        icon.style.transform = 'rotate(0deg)';
-                    } else {
-                        content.classList.add('collapsed');
-                        header.classList.add('collapsed');
-                        icon.style.transform = 'rotate(-90deg)';
-                    }
-                });
-            });
-
-            // Search functionality
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                
-                if (searchTerm === '') {
-                    // Show all sections
-                    sections.forEach(section => {
-                        section.classList.remove('hidden');
-                        section.classList.add('visible');
-                    });
-                    noResults.classList.add('hidden');
-                    return;
-                }
-                
-                let hasResults = false;
-                
-                sections.forEach(section => {
-                    const sectionText = section.textContent.toLowerCase();
-                    const sectionId = section.id;
-                    
-                    if (sectionText.includes(searchTerm)) {
-                        section.classList.remove('hidden');
-                        section.classList.add('visible');
-                        hasResults = true;
-                        
-                        // Highlight search terms
-                        highlightSearchTerms(section, searchTerm);
-                    } else {
-                        section.classList.add('hidden');
-                        section.classList.remove('visible');
-                    }
-                });
-                
-                if (!hasResults) {
-                    noResults.classList.remove('hidden');
-                } else {
-                    noResults.classList.add('hidden');
-                }
-            });
-
-            // Show specific section
-            function showSection(sectionId) {
-                let sectionFound = false;
-                sections.forEach(section => {
-                    if (section.id === sectionId) {
-                        section.classList.remove('hidden');
-                        section.classList.add('visible');
-                        sectionFound = true;
-                    } else {
-                        section.classList.add('hidden');
-                        section.classList.remove('visible');
-                    }
-                });
-                
-                // Only show "no results" if no section was found and we have a search term
-                if (!sectionFound && searchInput.value.trim() !== '') {
-                    noResults.classList.remove('hidden');
-                } else {
-                    noResults.classList.add('hidden');
-                }
-                
-                // Clear search when navigating directly to a section
-                if (sectionFound) {
-                    searchInput.value = '';
-                }
-            }
-
-            // Highlight search terms
-            function highlightSearchTerms(element, term) {
-                // Simple highlighting - in production you might want a more sophisticated approach
-                // This is a basic implementation
-            }
-
-            // Scroll to top functionality
-            const scrollToTopBtn = document.getElementById('scrollToTop');
-            const mainContent = document.querySelector('.main-content');
-            
-            mainContent.addEventListener('scroll', function() {
-                if (this.scrollTop > 300) {
-                    scrollToTopBtn.classList.add('visible');
-                } else {
-                    scrollToTopBtn.classList.remove('visible');
-                }
-            });
-            
-            scrollToTopBtn.addEventListener('click', function() {
-                mainContent.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-
-            // Animate sections on scroll
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, observerOptions);
-
-            sections.forEach(section => {
-                observer.observe(section);
-            });
-
-            // Initialize first section as visible and hide no results
-            sections.forEach(section => {
-                if (section.id === 'overview') {
-                    section.classList.remove('hidden');
-                    section.classList.add('visible');
-                } else {
-                    section.classList.add('hidden');
-                    section.classList.remove('visible');
-                }
-            });
-            noResults.classList.add('hidden');
+            noResults.hidden = shown > 0;
         });
-
-        // Copy code functionality
-        function copyCode(button) {
-            const codeBlock = button.closest('.code-block').querySelector('pre');
-            const text = codeBlock.textContent;
-            
-            navigator.clipboard.writeText(text).then(function() {
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.style.background = '#00ff88';
-                
-                setTimeout(function() {
-                    button.textContent = originalText;
-                    button.style.background = '';
-                }, 2000);
-            });
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Ctrl/Cmd + K to focus search
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('helpSearch').focus();
-            }
-            
-            // Escape to clear search
-            if (e.key === 'Escape') {
-                const searchInput = document.getElementById('helpSearch');
-                if (searchInput === document.activeElement) {
-                    searchInput.value = '';
-                    searchInput.dispatchEvent(new Event('input'));
-                    searchInput.blur();
-                }
-            }
-        });
+    });
     </script>
-
-    <footer style="margin-top: 3rem;">
-        <?php echo $footer; ?>
-    </footer>
 </body>
 </html>
