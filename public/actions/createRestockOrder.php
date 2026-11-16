@@ -1,6 +1,6 @@
 <?php
 // createRestockOrder.php - turns items picked on the inventory list into a pending incoming order
-session_start();
+require_once __DIR__ . '/../includes/bootstrap.php';
 include '../includes/connection.php';
 include '../includes/inventoryReturn.php';
 

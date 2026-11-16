@@ -32,8 +32,6 @@ if (!isset($_SESSION["userName"]) || !isset($_SESSION["userID"])) {
 
 // Connect to the database and include common elements.
 include __DIR__ . '/connection.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 // Check if this is a demo account
 $isDemoAccount = isset($_SESSION['isDemoAccount']) && $_SESSION['isDemoAccount'];

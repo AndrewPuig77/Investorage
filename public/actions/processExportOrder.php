@@ -1,8 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/bootstrap.php';
 include '../includes/connection.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 if (!isset($_SESSION["userID"], $_SESSION["GroupID"], $_POST["selectedItems"], $_POST["location"])) {
     header("Location: ../warehouseExport.php?error=" . urlencode("Invalid request or session."));

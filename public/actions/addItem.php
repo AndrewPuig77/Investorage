@@ -1,6 +1,6 @@
 <?php
 // addItem.php - saves the Add item panel on the inventory page
-session_start();
+require_once __DIR__ . '/../includes/bootstrap.php';
 include '../includes/connection.php';
 include '../includes/inventoryReturn.php';
 

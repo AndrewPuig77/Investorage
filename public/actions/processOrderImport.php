@@ -1,8 +1,7 @@
 <?php
 // processOrderImport.php - Fixed version with proper error handling
 ob_start();
-session_start();
-error_reporting(E_ALL);
+require_once __DIR__ . '/../includes/bootstrap.php';
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 

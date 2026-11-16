@@ -1,6 +1,6 @@
 <?php
 // confirmOrder.php - records what actually arrived for an order and adds it to inventory
-session_start();
+require_once __DIR__ . '/../includes/bootstrap.php';
 include '../includes/connection.php';
 
 if (!isset($_SESSION["userID"]) || !isset($_SESSION["GroupID"])) {

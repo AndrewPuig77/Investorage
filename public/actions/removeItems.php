@@ -1,6 +1,6 @@
 <?php
 // removeItems.php - removes one item (row/edit panel) or the ticked items from the inventory page
-session_start();
+require_once __DIR__ . '/../includes/bootstrap.php';
 include '../includes/connection.php';
 include '../includes/inventoryReturn.php';
 
