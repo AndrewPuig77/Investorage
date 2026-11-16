@@ -80,9 +80,17 @@ if ($isDemoAccount && $userId && $groupId) {
     }
 }
 
-// Destroy session
+/// Destroy session, including the browser's session cookie
 session_unset();
 session_destroy();
+$cookie = session_get_cookie_params();
+setcookie(session_name(), '', [
+    'expires'  => time() - 3600,
+    'path'     => $cookie['path'],
+    'secure'   => $cookie['secure'],
+    'httponly' => $cookie['httponly'],
+    'samesite' => $cookie['samesite'] ?: 'Lax',
+]);
 
 include 'includes/indexElements.php';
 echo $license;
@@ -90,20 +98,67 @@ echo $license;
 <html lang="en">
 <head>
   <?php echo $head; ?>
+  <title>Signed out | Investorage</title>
+  <style>
+    .auth-page {
+      padding: 120px 16px 72px;
+    }
+
+    .auth-card {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      background: var(--card-bg);
+      text-align: center;
+    }
+
+    .auth-card .done {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      border-radius: 50%;
+      background: rgba(76,183,130,.14);
+      color: #6FD3A1;
+      font-size: 1.25rem;
+    }
+
+    .auth-card h1 {
+      margin-bottom: 8px;
+      font-size: 1.625rem;
+      letter-spacing: -0.02em;
+    }
+
+    .auth-card p {
+      color: var(--text-secondary);
+    }
+  </style>
 </head>
 <body>
   <?php echo $nav; ?>
-  <?php echo $tagline; ?>
 
-  <div class="container mt-3 text-center">
-    <p>Goodbye! You have been signed out.</p>
-    <?php if ($isDemoAccount): ?>
-    <p class="text-muted">Your demo account data has been cleared.</p>
-    <?php endif; ?>
-    <!-- Home and Login Buttons -->
-    <a href="index.php" class="btn btn-primary me-2">Home</a>
-    <a href="logIn.php" class="btn btn-secondary">Login</a>
-  </div>
+  <main class="auth-page">
+    <div class="auth-card">
+      <span class="done" aria-hidden="true"><i class="fas fa-check"></i></span>
+      <h1>You're signed out</h1>
+      <?php if ($isDemoAccount): ?>
+        <p>The demo warehouse and everything in it has been deleted. Start a fresh one any time.</p>
+      <?php else: ?>
+        <p>See you next time.</p>
+      <?php endif; ?>
+      <div class="d-flex flex-column gap-2 mt-4">
+        <a href="logIn.php" class="btn btn-primary">Log in again</a>
+        <?php if ($isDemoAccount): ?>
+          <a href="actions/createDemoAccount.php" class="btn btn-secondary">Start a new demo</a>
+        <?php endif; ?>
+        <a href="index.php" class="btn btn-secondary">Home page</a>
+      </div>
+    </div>
+  </main>
 
   <?php echo $footer; ?>
 </body>
