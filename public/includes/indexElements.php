@@ -437,6 +437,62 @@ $head =
   .site-footer-links a:hover { color: var(--text-primary); }
   .site-footer-note { margin: 24px 0 0; font-size: 0.8125rem; color: var(--text-muted); }
 
+  /* App pages: shared header, tabs, panels, tables and row buttons */
+  .page { padding: 28px 40px 48px; display: flex; flex-direction: column; gap: 20px; }
+  .page-header { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+  .page-header .titles { flex: 1 1 280px; min-width: 0; }
+  .page-header h1 { margin: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
+  .page-eyebrow { margin: 0 0 4px; font-size: 0.8125rem; color: var(--text-muted); }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 0.8125rem; }
+  .tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); }
+  .tabs a { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 8px; color: var(--text-secondary); font-size: 0.875rem; font-weight: 500; }
+  .tabs a:hover { color: var(--text-primary); }
+  .tabs a.active { background: var(--card-hover); color: var(--text-primary); }
+  .tab-count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--border-color); color: var(--text-primary); font-size: 0.75rem; line-height: 22px; text-align: center; }
+  .panel { border: 1px solid var(--border-color); border-radius: 14px; background: var(--card-bg); }
+  .panel-pad { padding: 20px 24px; }
+  .panel-title { margin: 0; font-size: 1rem; font-weight: 600; }
+  .panel-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 8px 20px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-muted); }
+  .panel-bar strong { color: var(--text-primary); }
+  .table-wrap { overflow-x: auto; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: var(--text-primary); }
+  .data-table th, .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+  .data-table th { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+  .data-table tbody tr:last-child td { border-bottom: 0; }
+  .data-table tbody tr:hover td { background: var(--card-hover); }
+  .data-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; }
+  .cell-sub { margin-top: 2px; font-size: 0.75rem; color: var(--text-muted); }
+  .row-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-row { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid #2E3541; border-radius: 8px; background: transparent; color: var(--text-primary); font-size: 0.8125rem; font-weight: 500; }
+  .btn-row:hover { border-color: #3A4352; background: var(--card-hover); color: var(--text-primary); }
+  .btn-row.primary { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+  .btn-row.primary:hover { filter: brightness(1.1); }
+  .btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; min-height: 36px; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted); }
+  .btn-icon:hover { background: var(--card-hover); color: var(--text-primary); }
+  .btn-icon.danger:hover { background: rgba(229,103,107,.14); color: #F5999B; }
+  .btn-danger-soft { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid rgba(229,103,107,.4); border-radius: 8px; background: rgba(229,103,107,.12); color: #F5999B; font-size: 0.8125rem; font-weight: 600; }
+  .btn-danger-soft:hover { background: rgba(229,103,107,.2); color: #F5999B; }
+  .dropdown-menu { background: var(--card-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 6px; }
+  .dropdown-item { display: flex; align-items: center; gap: 10px; min-height: 36px; border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; }
+  .dropdown-item i { width: 16px; color: var(--text-muted); }
+  .dropdown-item:hover, .dropdown-item:focus { background: var(--card-bg); color: var(--text-primary); }
+  .dropdown-item.danger, .dropdown-item.danger i { color: #F5999B; }
+  .dropdown-divider { border-color: var(--border-color); }
+  .empty-state { padding: 56px 24px; text-align: center; color: var(--text-muted); }
+  .empty-state h2 { margin-bottom: 8px; font-size: 1.125rem; color: var(--text-primary); }
+  .empty-state .btn { margin-top: 12px; }
+  .stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .stat-tile { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--card-bg); }
+  .stat-tile span { font-size: 0.8125rem; color: var(--text-secondary); }
+  .stat-tile strong { font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .stat-tile small { font-size: 0.8125rem; color: var(--text-muted); }
+  .toast-area { position: fixed; right: 20px; bottom: 20px; z-index: 1090; }
+  .toast { background: var(--card-hover); border: 1px solid var(--border-color); color: var(--text-primary); }
+  .toast.is-error { border-color: rgba(229,103,107,.45); }
+  .field-hint { margin-top: 6px; font-size: 0.8125rem; color: var(--text-muted); }
+  @media (max-width: 767.98px) { .page { padding: 20px 16px 40px; } }
+
   /* Status pills */
   .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
   .pill-ok { background: rgba(76,183,130,.14); color: #6FD3A1; }
@@ -564,11 +620,10 @@ $navActive = '
     ' . $appNavLink('addInventory.php', 'fas fa-plus', 'Add item') . '
     ' . $appNavLink('lowstockReport.php', 'fas fa-exclamation-triangle', 'Low stock') . '
     <div class="app-nav-label">Orders</div>
-    ' . $appNavLink('orderManagement.php', 'fas fa-list', 'Orders', ['editOrder.php']) . '
-    ' . $appNavLink('orderImport.php', 'fas fa-file-import', 'Import orders') . '
-    ' . $appNavLink('warehouseExport.php', 'fas fa-truck', 'Exports', ['exportWarehouseView.php', 'exportWarehouseManagement.php', 'exportOrder.php']) . '
-    <div class="app-nav-label">Insights</div>
-    ' . $appNavLink('inventoryReport.php', 'fas fa-chart-line', 'Reports') . '
+    ' . $appNavLink('orderManagement.php', 'fas fa-exchange-alt', 'Orders', ['editOrder.php', 'exportOrder.php', 'exportWarehouseView.php', 'exportWarehouseManagement.php']) . '
+    ' . $appNavLink('orderImport.php', 'fas fa-file-import', 'Import order') . '
+    ' . ($navUserRole === 'Staff' ? '' : $appNavLink('warehouseExport.php', 'fas fa-truck', 'New export')) . '
+    ' . ($navUserRole === 'Staff' ? '' : '<div class="app-nav-label">Insights</div>' . $appNavLink('inventoryReport.php', 'fas fa-chart-line', 'Reports')) . '
   </nav>
   <div class="app-user app-nav">
     <div class="app-user-chip">

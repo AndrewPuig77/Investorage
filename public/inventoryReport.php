@@ -15,24 +15,35 @@ $GroupID = $_SESSION["GroupID"];
 $Role = $_SESSION["Role"] ?? '';
 
 if ($Role === 'Staff') {
-    echo "<script>alert('Insufficient Permissions'); window.location.href='orderManagement.php';</script>";
+    header("Location: activeHome.php");
     exit();
 }
 
-// Enhanced date filter with better options
 $filterOptions = [
-    'today' => ['label' => 'Today', 'days' => 0],
-    '7days' => ['label' => 'Last 7 Days', 'days' => 7],
-    '30days' => ['label' => 'Last 30 Days', 'days' => 30],
-    '90days' => ['label' => 'Last 90 Days', 'days' => 90],
-    '6months' => ['label' => 'Last 6 Months', 'days' => 180],
-    'year' => ['label' => 'Last Year', 'days' => 365],
-    'all' => ['label' => 'All Time', 'days' => -1]
+    'today'   => ['label' => 'Today', 'days' => 0],
+    '7days'   => ['label' => '7 days', 'days' => 7],
+    '30days'  => ['label' => '30 days', 'days' => 30],
+    '90days'  => ['label' => '90 days', 'days' => 90],
+    '6months' => ['label' => '6 months', 'days' => 180],
+    'year'    => ['label' => '12 months', 'days' => 365],
+    'all'     => ['label' => 'All time', 'days' => -1]
 ];
 
+// Only real YYYY-MM-DD dates are accepted for a custom range
+function validDay($value) {
+    if (!is_string($value) || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m)) {
+        return '';
+    }
+    return checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ? $value : '';
+}
+
 $selectedFilter = $_GET['filter'] ?? '30days';
-$customDateFrom = $_GET['date_from'] ?? '';
-$customDateTo = $_GET['date_to'] ?? '';
+$selectedFilter = isset($filterOptions[$selectedFilter]) ? $selectedFilter : '30days';
+$customDateFrom = validDay($_GET['date_from'] ?? '');
+$customDateTo   = validDay($_GET['date_to'] ?? '');
+if ($customDateFrom && $customDateTo && $customDateFrom > $customDateTo) {
+    [$customDateFrom, $customDateTo] = [$customDateTo, $customDateFrom];
+}
 
 // Calculate date range
 if ($customDateFrom && $customDateTo) {
@@ -40,7 +51,7 @@ if ($customDateFrom && $customDateTo) {
     $dateTo = $customDateTo . ' 23:59:59';
     $selectedFilter = 'custom';
 } else {
-    $filterData = $filterOptions[$selectedFilter] ?? $filterOptions['30days'];
+    $filterData = $filterOptions[$selectedFilter];
     if ($filterData['days'] == 0) {
         $dateFrom = date('Y-m-d 00:00:00');
         $dateTo = date('Y-m-d 23:59:59');
@@ -52,518 +63,343 @@ if ($customDateFrom && $customDateTo) {
         $dateTo = date('Y-m-d 23:59:59');
     }
 }
-?>
+$periodLabel = $selectedFilter === 'all'
+    ? 'All time'
+    : date('M j, Y', strtotime($dateFrom)) . ($selectedFilter === 'today' ? '' : ' – ' . date('M j, Y', strtotime($dateTo)));
 
+// Right now: current inventory
+$statsQuery = $conn->prepare("
+    SELECT
+        COUNT(*) as totalItems,
+        COALESCE(SUM(Stock), 0) as totalStock,
+        COALESCE(SUM(Stock * SalesPrice), 0) as totalValue,
+        COUNT(CASE WHEN Stock <= LowStockWarning THEN 1 END) as lowStockItems
+    FROM Inventory
+    WHERE GroupID = ?
+");
+$statsQuery->bind_param("i", $GroupID);
+$statsQuery->execute();
+$stats = $statsQuery->get_result()->fetch_assoc();
+$statsQuery->close();
+
+// In the period: incoming orders
+$importQuery = $conn->prepare("
+    SELECT
+        COUNT(DISTINCT o.OrderID) as count,
+        COALESCE(SUM(oi.Quantity), 0) as totalItems,
+        COALESCE(SUM(oi.SalesPrice * oi.Quantity), 0) as totalValue
+    FROM Orders o
+    LEFT JOIN OrderItems oi ON o.OrderID = oi.OrderID
+    WHERE o.UserID IN (SELECT UserID FROM RoleAccess WHERE GroupID = ?)
+    AND o.OrderDate BETWEEN ? AND ?
+");
+$importQuery->bind_param("iss", $GroupID, $dateFrom, $dateTo);
+$importQuery->execute();
+$importData = $importQuery->get_result()->fetch_assoc();
+$importQuery->close();
+
+// In the period: outgoing orders
+$exportQuery = $conn->prepare("
+    SELECT
+        COUNT(ExportOrderID) as count,
+        COALESCE(SUM(TotalItems), 0) as totalItems,
+        COALESCE(SUM(TotalValue), 0) as totalValue
+    FROM ExportOrders
+    WHERE GroupID = ?
+    AND ExportDate BETWEEN ? AND ?
+");
+$exportQuery->bind_param("iss", $GroupID, $dateFrom, $dateTo);
+$exportQuery->execute();
+$exportData = $exportQuery->get_result()->fetch_assoc();
+$exportQuery->close();
+
+// In the period: changes from the audit log
+$logQuery = $conn->prepare("
+    SELECT l.SKU, l.ChangeType, l.OldValue, l.NewValue, l.CreatedAt, r.userName
+    FROM inventory_log l
+    JOIN RoleAccess r ON l.User_Id = r.UserID
+    WHERE l.User_Id IN (SELECT UserID FROM RoleAccess WHERE GroupID = ?)
+    AND l.CreatedAt BETWEEN ? AND ?
+    ORDER BY l.CreatedAt DESC
+    LIMIT 100
+");
+$logQuery->bind_param("iss", $GroupID, $dateFrom, $dateTo);
+$logQuery->execute();
+$logRows = $logQuery->get_result()->fetch_all(MYSQLI_ASSOC);
+$logQuery->close();
+
+// Right now: every item, lowest stock first
+$invQuery = $conn->prepare("
+    SELECT SKU, Name, Category, Stock, SalesPrice, LowStockWarning, Status
+    FROM Inventory
+    WHERE GroupID = ?
+    ORDER BY Stock ASC
+");
+$invQuery->bind_param("i", $GroupID);
+$invQuery->execute();
+$inventoryRows = $invQuery->get_result()->fetch_all(MYSQLI_ASSOC);
+$invQuery->close();
+$conn->close();
+
+// Label and pill style for each audit-log change type
+$changeStyles = [
+    'add'             => ['Add', 'pill-ok'],
+    'updateInventory' => ['Update', 'pill-info'],
+    'removeAll'       => ['Removed', 'pill-low'],
+    'removeSelected'  => ['Removed', 'pill-low'],
+    'import'          => ['Import', 'pill-watch'],
+    'confirmImport'   => ['Import', 'pill-watch'],
+    'export'          => ['Export', 'pill-info'],
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <?php echo $head; ?>
-    <title>Inventory Report - Investorage</title>
+    <title>Reports | Investorage</title>
     <style>
-        body {
-            background-color: var(--dark-bg);
-            color: #f5f5f5;
-        }
-        
-        /* Main container styling */
-        .report-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* Filter section */
-        .filter-section {
-            background-color: #2a2a2a;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        
-        .filter-btn {
-            margin: 5px;
-            border-radius: 20px;
-            padding: 8px 20px;
-            transition: all 0.3s;
-        }
-        
-        .filter-btn.active {
-            background-color: #4682B4;
-            border-color: #4682B4;
-            transform: scale(1.05);
-        }
-        
-        /* Dashboard cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-card.primary { border-left: 4px solid #4682B4; }
-        .stat-card.success { border-left: 4px solid #28a745; }
-        .stat-card.warning { border-left: 4px solid #ffc107; }
-        .stat-card.danger { border-left: 4px solid #dc3545; }
-        
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .stat-label {
-            color: #aaa;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        /* Report sections */
-        .report-section {
-            background-color: #2a2a2a;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        
-        .section-header {
+        .period-bar {
             display: flex;
-            justify-content: between;
+            flex-wrap: wrap;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #444;
+            gap: 12px;
         }
-        
-        .section-title {
-            font-size: 1.5rem;
+
+        .period-note {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .period-note strong {
+            color: var(--text-primary);
+        }
+
+        .custom-range {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .custom-range label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .custom-range .form-control {
+            width: 170px;
+            min-height: 40px;
+            color-scheme: dark;
+        }
+
+        .section-label {
+            margin: 4px 0 -4px;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #4682B4;
-        }
-        
-        /* Scrollable tables */
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            overflow-x: auto;
-            border-radius: 10px;
-            background-color: #1f1f1f;
-        }
-        
-        .table-container::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        
-        .table-container::-webkit-scrollbar-track {
-            background: #2a2a2a;
-            border-radius: 5px;
-        }
-        
-        .table-container::-webkit-scrollbar-thumb {
-            background: #4682B4;
-            border-radius: 5px;
-        }
-        
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #5a9bd5;
-        }
-        
-        /* Enhanced table styling */
-        .report-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        
-        .report-table thead th {
-            background-color: #4682B4;
-            color: white;
-            font-weight: 600;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            font-size: 0.85rem;
-            padding: 15px;
+            color: var(--text-muted);
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .flow-figures {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .flow-figures div span {
+            display: block;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .flow-figures div strong {
+            font-size: 1.375rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .change-text {
+            max-width: 280px;
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+        }
+
+        .scroll-y {
+            max-height: 480px;
+            overflow: auto;
+        }
+
+        .scroll-y thead th {
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 1;
+            background: var(--card-bg);
         }
-        
-        .report-table tbody tr {
-            transition: background-color 0.2s;
-        }
-        
-        .report-table tbody tr:hover {
-            background-color: #3a3a3a;
-        }
-        
-        .report-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #333;
-        }
-        
-        /* Custom date picker */
-        .date-picker-container {
-            background-color: #3a3a3a;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .date-input {
-            background-color: #2a2a2a;
-            border: 1px solid #4682B4;
-            color: #fff;
-            border-radius: 5px;
-            padding: 8px 12px;
-        }
-        
-        /* Charts container */
-        .chart-container {
-            background-color: #1f1f1f;
-            border-radius: 10px;
-            padding: 20px;
-            height: 300px;
-        }
-        
-        /* Status badges */
-        .badge-status {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .badge-add { background-color: #28a745; }
-        .badge-update { background-color: #ffc107; color: #000; }
-        .badge-remove { background-color: #dc3545; }
-        .badge-import { background-color: #17a2b8; }
-        .badge-export { background-color: #6f42c1; }
     </style>
 </head>
-
 <body>
     <?php echo $navActive; ?>
-    <?php echo $tagline; ?>
 
-    <div class="container-fluid report-container">
-        <h1 class="mb-4"><i class="fas fa-chart-line"></i> Inventory Analytics Dashboard</h1>
-
-        <!-- Filter Section -->
-        <div class="filter-section">
-            <h5 class="mb-3">Select Time Period</h5>
-            <div class="d-flex flex-wrap align-items-center">
-                <?php foreach ($filterOptions as $key => $option): ?>
-                    <a href="?filter=<?php echo $key; ?>" 
-                       class="btn btn-outline-primary filter-btn <?php echo ($selectedFilter === $key) ? 'active' : ''; ?>">
-                        <?php echo $option['label']; ?>
-                    </a>
-                <?php endforeach; ?>
-                
-                <button class="btn btn-outline-info filter-btn ms-3" onclick="toggleCustomDate()">
-                    <i class="fas fa-calendar"></i> Custom Range
-                </button>
+    <main class="page">
+        <header class="page-header">
+            <div class="titles">
+                <p class="page-eyebrow">Reports</p>
+                <h1>Inventory report</h1>
             </div>
-            
-            <div id="customDatePicker" class="date-picker-container" style="display: <?php echo $selectedFilter === 'custom' ? 'block' : 'none'; ?>;">
-                <form method="GET" class="row g-3">
-                    <div class="col-md-5">
-                        <label>From Date:</label>
-                        <input type="date" name="date_from" class="form-control date-input" 
-                               value="<?php echo $customDateFrom; ?>" required>
-                    </div>
-                    <div class="col-md-5">
-                        <label>To Date:</label>
-                        <input type="date" name="date_to" class="form-control date-input" 
-                               value="<?php echo $customDateTo; ?>" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary w-100">Apply</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Stats Dashboard -->
-        <?php
-        // Get current inventory stats
-        $statsQuery = $conn->prepare("
-            SELECT 
-                COUNT(*) as totalItems,
-                SUM(Stock) as totalStock,
-                SUM(Stock * SalesPrice) as totalValue,
-                COUNT(CASE WHEN Stock <= LowStockWarning THEN 1 END) as lowStockItems
-            FROM Inventory 
-            WHERE GroupID = ?
-        ");
-        $statsQuery->bind_param("i", $GroupID);
-        $statsQuery->execute();
-        $stats = $statsQuery->get_result()->fetch_assoc();
-        $statsQuery->close();
-        ?>
-
-        <div class="stats-grid">
-            <div class="stat-card primary">
-                <div class="stat-label">Total SKUs</div>
-                <div class="stat-value"><?php echo number_format($stats['totalItems']); ?></div>
-                <small>Unique products</small>
-            </div>
-            
-            <div class="stat-card success">
-                <div class="stat-label">Total Stock</div>
-                <div class="stat-value"><?php echo number_format($stats['totalStock']); ?></div>
-                <small>Units in warehouse</small>
-            </div>
-            
-            <div class="stat-card warning">
-                <div class="stat-label">Inventory Value</div>
-                <div class="stat-value">$<?php echo number_format($stats['totalValue'], 0); ?></div>
-                <small>Current value</small>
-            </div>
-            
-            <div class="stat-card danger">
-                <div class="stat-label">Low Stock Alerts</div>
-                <div class="stat-value"><?php echo number_format($stats['lowStockItems']); ?></div>
-                <small>Items need attention</small>
-            </div>
-        </div>
-
-        <!-- Current Inventory Section -->
-        <div class="report-section">
-            <div class="section-header">
-                <h3 class="section-title"><i class="fas fa-boxes"></i> Current Inventory</h3>
-            </div>
-            
-            <div class="table-container">
-                <table class="table table-dark report-table">
-                    <thead>
-                        <tr>
-                            <th>SKU</th>
-                            <th>Product Name</th>
-                            <th>Category</th>
-                            <th>Stock</th>
-                            <th>Low Stock</th>
-                            <th>Unit Price</th>
-                            <th>Total Value</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $invQuery = $conn->prepare("
-                            SELECT SKU, Name, Category, Stock, SalesPrice, LowStockWarning, Status 
-                            FROM Inventory 
-                            WHERE GroupID = ?
-                            ORDER BY Stock ASC
-                        ");
-                        $invQuery->bind_param("i", $GroupID);
-                        $invQuery->execute();
-                        $result = $invQuery->get_result();
-                        
-                        while ($row = $result->fetch_assoc()):
-                            $value = floatval($row['Stock']) * floatval($row['SalesPrice']);
-                            $isLowStock = $row['Stock'] <= $row['LowStockWarning'];
-                        ?>
-                        <tr>
-                            <td><strong><?php echo htmlspecialchars($row['SKU']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($row['Name']); ?></td>
-                            <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['Category']); ?></span></td>
-                            <td>
-                                <?php if ($isLowStock): ?>
-                                    <span class="text-danger"><i class="fas fa-exclamation-triangle"></i> <?php echo $row['Stock']; ?></span>
-                                <?php else: ?>
-                                    <?php echo $row['Stock']; ?>
-                                <?php endif; ?>
-                            </td>
-                            <td><?php echo $row['LowStockWarning']; ?></td>
-                            <td>$<?php echo number_format($row['SalesPrice'], 2); ?></td>
-                            <td>$<?php echo number_format($value, 2); ?></td>
-                            <td><span class="badge bg-info"><?php echo htmlspecialchars($row['Status']); ?></span></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Activity Log Section -->
-        <div class="report-section">
-            <div class="section-header">
-                <h3 class="section-title"><i class="fas fa-history"></i> Recent Activity</h3>
-            </div>
-            
-            <div class="table-container">
-                <table class="table table-dark report-table">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>SKU</th>
-                            <th>Action</th>
-                            <th>Previous Value</th>
-                            <th>New Value</th>
-                            <th>User</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        // Enhanced query to include remove operations
-                        $logQuery = $conn->prepare("
-                            SELECT 
-                                l.SKU, 
-                                l.ChangeType, 
-                                l.OldValue, 
-                                l.NewValue, 
-                                l.CreatedAt,
-                                r.userName
-                            FROM inventory_log l
-                            JOIN RoleAccess r ON l.User_Id = r.UserID
-                            WHERE l.User_Id IN (
-                                SELECT UserID FROM RoleAccess WHERE GroupID = ?
-                            )
-                            AND l.CreatedAt BETWEEN ? AND ?
-                            ORDER BY l.CreatedAt DESC
-                            LIMIT 100
-                        ");
-                        $logQuery->bind_param("iss", $GroupID, $dateFrom, $dateTo);
-                        $logQuery->execute();
-                        $logResult = $logQuery->get_result();
-                        
-                        while ($log = $logResult->fetch_assoc()):
-                            $badgeClass = 'badge-add';
-                            switch($log['ChangeType']) {
-                                case 'updateInventory': $badgeClass = 'badge-update'; break;
-                                case 'removeAll':
-                                case 'removeSelected': $badgeClass = 'badge-remove'; break;
-                                case 'import':
-                                case 'confirmImport': $badgeClass = 'badge-import'; break;
-                                case 'export': $badgeClass = 'badge-export'; break;
-                            }
-                        ?>
-                        <tr>
-                            <td><?php echo date('M d, H:i', strtotime($log['CreatedAt'])); ?></td>
-                            <td><?php echo htmlspecialchars($log['SKU']); ?></td>
-                            <td><span class="badge-status <?php echo $badgeClass; ?>"><?php echo htmlspecialchars($log['ChangeType']); ?></span></td>
-                            <td><?php echo htmlspecialchars(substr($log['OldValue'], 0, 50)); ?></td>
-                            <td><?php echo htmlspecialchars(substr($log['NewValue'], 0, 50)); ?></td>
-                            <td><?php echo htmlspecialchars($log['userName']); ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Import/Export Summary -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="report-section">
-                    <div class="section-header">
-                        <h3 class="section-title"><i class="fas fa-download"></i> Import Summary</h3>
-                    </div>
-                    <?php
-                    $importQuery = $conn->prepare("
-                        SELECT 
-                            COUNT(DISTINCT o.OrderID) as count,
-                            COALESCE(SUM(oi.Quantity), 0) as totalItems,
-                            COALESCE(SUM(oi.SalesPrice * oi.Quantity), 0) as totalValue
-                        FROM Orders o
-                        LEFT JOIN OrderItems oi ON o.OrderID = oi.OrderID
-                        WHERE o.UserID IN (SELECT UserID FROM RoleAccess WHERE GroupID = ?)
-                        AND o.OrderDate BETWEEN ? AND ?
-                    ");
-                    $importQuery->bind_param("iss", $GroupID, $dateFrom, $dateTo);
-                    $importQuery->execute();
-                    $importData = $importQuery->get_result()->fetch_assoc();
-                    $importQuery->close();
-                    ?>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Orders</div>
-                            <div class="stat-value"><?php echo $importData['count'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Items</div>
-                            <div class="stat-value"><?php echo $importData['totalItems'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Value</div>
-                            <div class="stat-value">$<?php echo number_format($importData['totalValue'] ?? 0, 0); ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="report-section">
-                    <div class="section-header">
-                        <h3 class="section-title"><i class="fas fa-upload"></i> Export Summary</h3>
-                    </div>
-                    <?php
-                    $exportQuery = $conn->prepare("
-                        SELECT 
-                            COUNT(ExportOrderID) as count,
-                            COALESCE(SUM(TotalItems), 0) as totalItems,
-                            COALESCE(SUM(TotalValue), 0) as totalValue
-                        FROM ExportOrders 
-                        WHERE GroupID = ?
-                        AND ExportDate BETWEEN ? AND ?
-                    ");
-                    $exportQuery->bind_param("iss", $GroupID, $dateFrom, $dateTo);
-                    $exportQuery->execute();
-                    $exportData = $exportQuery->get_result()->fetch_assoc();
-                    $exportQuery->close();
-                    ?>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Orders</div>
-                            <div class="stat-value"><?php echo $exportData['count'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Items</div>
-                            <div class="stat-value"><?php echo $exportData['totalItems'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Value</div>
-                            <div class="stat-value">$<?php echo number_format($exportData['totalValue'] ?? 0, 0); ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PDF Export -->
-        <div class="text-center mt-4">
             <form action="generateInventoryReportPDF.php" method="post" target="_blank">
-                <input type="hidden" name="filter" value="<?php echo $selectedFilter; ?>">
-                <input type="hidden" name="date_from" value="<?php echo $dateFrom; ?>">
-                <input type="hidden" name="date_to" value="<?php echo $dateTo; ?>">
-                <button type="submit" class="btn btn-danger btn-lg">
-                    <i class="fas fa-file-pdf"></i> Export Full Report as PDF
-                </button>
+                <input type="hidden" name="date_from" value="<?php echo htmlspecialchars($dateFrom); ?>">
+                <input type="hidden" name="date_to" value="<?php echo htmlspecialchars($dateTo); ?>">
+                <button type="submit" class="btn btn-secondary"><i class="fas fa-file-pdf" aria-hidden="true"></i> Download PDF</button>
             </form>
+        </header>
+
+        <div class="period-bar">
+            <nav class="tabs" aria-label="Report period">
+                <?php foreach ($filterOptions as $key => $option): ?>
+                    <a href="?filter=<?php echo $key; ?>" class="<?php echo $selectedFilter === $key ? 'active' : ''; ?>"<?php echo $selectedFilter === $key ? ' aria-current="true"' : ''; ?>><?php echo $option['label']; ?></a>
+                <?php endforeach; ?>
+                <a href="#customRange" id="customToggle" class="<?php echo $selectedFilter === 'custom' ? 'active' : ''; ?>" aria-controls="customRange" aria-expanded="<?php echo $selectedFilter === 'custom' ? 'true' : 'false'; ?>">
+                    <i class="fas fa-calendar" aria-hidden="true"></i> Custom
+                </a>
+            </nav>
+            <span class="period-note">Showing <strong><?php echo $periodLabel; ?></strong></span>
         </div>
-    </div>
+
+        <form method="get" class="custom-range" id="customRange" <?php echo $selectedFilter === 'custom' ? '' : 'hidden'; ?>>
+            <div>
+                <label for="dateFrom">From</label>
+                <input type="date" id="dateFrom" name="date_from" class="form-control" value="<?php echo htmlspecialchars($customDateFrom); ?>" required>
+            </div>
+            <div>
+                <label for="dateTo">To</label>
+                <input type="date" id="dateTo" name="date_to" class="form-control" value="<?php echo htmlspecialchars($customDateTo); ?>" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Show range</button>
+        </form>
+
+        <p class="section-label">Right now</p>
+        <section class="stat-tiles" aria-label="Current inventory">
+            <div class="stat-tile"><span>Products</span><strong><?php echo number_format($stats['totalItems']); ?></strong></div>
+            <div class="stat-tile"><span>Units on hand</span><strong><?php echo number_format($stats['totalStock']); ?></strong></div>
+            <div class="stat-tile"><span>Inventory value</span><strong>$<?php echo number_format($stats['totalValue'], 0); ?></strong></div>
+            <div class="stat-tile">
+                <span>Low stock</span><strong><?php echo number_format($stats['lowStockItems']); ?></strong>
+                <small><a href="lowstockReport.php">Low stock report</a></small>
+            </div>
+        </section>
+
+        <p class="section-label">In this period</p>
+        <div class="flow-grid">
+            <section class="panel panel-pad" aria-labelledby="inTitle">
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <h2 class="panel-title" id="inTitle"><i class="fas fa-arrow-down" aria-hidden="true"></i> Incoming orders</h2>
+                    <a href="orderManagement.php" style="font-size: 0.8125rem">View orders</a>
+                </div>
+                <div class="flow-figures">
+                    <div><span>Orders</span><strong><?php echo number_format($importData['count'] ?? 0); ?></strong></div>
+                    <div><span>Units</span><strong><?php echo number_format($importData['totalItems'] ?? 0); ?></strong></div>
+                    <div><span>Value</span><strong>$<?php echo number_format($importData['totalValue'] ?? 0, 0); ?></strong></div>
+                </div>
+            </section>
+            <section class="panel panel-pad" aria-labelledby="outTitle">
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <h2 class="panel-title" id="outTitle"><i class="fas fa-arrow-up" aria-hidden="true"></i> Outgoing orders</h2>
+                    <a href="exportWarehouseView.php" style="font-size: 0.8125rem">View exports</a>
+                </div>
+                <div class="flow-figures">
+                    <div><span>Exports</span><strong><?php echo number_format($exportData['count'] ?? 0); ?></strong></div>
+                    <div><span>Units</span><strong><?php echo number_format($exportData['totalItems'] ?? 0); ?></strong></div>
+                    <div><span>Value</span><strong>$<?php echo number_format($exportData['totalValue'] ?? 0, 0); ?></strong></div>
+                </div>
+            </section>
+        </div>
+
+        <section class="panel" aria-labelledby="changesTitle">
+            <div class="panel-bar">
+                <h2 class="panel-title" id="changesTitle">Changes</h2>
+                <span><?php echo count($logRows) === 100 ? 'Latest 100 in this period' : count($logRows) . ' in this period'; ?></span>
+            </div>
+            <?php if (!empty($logRows)): ?>
+            <div class="table-wrap scroll-y">
+                <table class="data-table" style="min-width: 820px">
+                    <thead>
+                        <tr><th>When</th><th>Change</th><th>SKU</th><th>Before</th><th>After</th><th>By</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($logRows as $log):
+                        [$label, $pill] = $changeStyles[$log['ChangeType']] ?? [$log['ChangeType'], 'pill-info'];
+                    ?>
+                        <tr>
+                            <td class="text-nowrap" style="color: var(--text-secondary)"><?php echo date('M j, H:i', strtotime($log['CreatedAt'])); ?></td>
+                            <td><span class="pill <?php echo $pill; ?>"><?php echo htmlspecialchars($label); ?></span></td>
+                            <td class="mono"><?php echo htmlspecialchars($log['SKU']); ?></td>
+                            <td class="change-text"><?php echo htmlspecialchars($log['OldValue'] ?? ''); ?></td>
+                            <td class="change-text"><?php echo htmlspecialchars($log['NewValue'] ?? ''); ?></td>
+                            <td style="color: var(--text-secondary)"><?php echo htmlspecialchars($log['userName']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php else: ?>
+                <div class="empty-state"><h2>No changes in this period</h2><p>Try a longer period.</p></div>
+            <?php endif; ?>
+        </section>
+
+        <section class="panel" aria-labelledby="stockTitle">
+            <div class="panel-bar">
+                <h2 class="panel-title" id="stockTitle">Current stock</h2>
+                <span>Lowest stock first · <a href="searchInventory.php">Manage inventory</a></span>
+            </div>
+            <?php if (!empty($inventoryRows)): ?>
+            <div class="table-wrap scroll-y">
+                <table class="data-table" style="min-width: 760px">
+                    <thead>
+                        <tr><th>Product</th><th>Category</th><th class="num">Stock</th><th>Health</th><th class="num">Price</th><th class="num">Value</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($inventoryRows as $row):
+                        $stock = (int) $row['Stock'];
+                        $low   = (int) $row['LowStockWarning'];
+                        [$healthLabel, $healthPill] = $stock <= $low ? ['Low', 'pill-low'] : ($stock <= $low + 10 ? ['Watch', 'pill-watch'] : ['Healthy', 'pill-ok']);
+                    ?>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600"><?php echo htmlspecialchars($row['Name']); ?></div>
+                                <div class="cell-sub mono"><?php echo htmlspecialchars($row['SKU']); ?></div>
+                            </td>
+                            <td><?php echo htmlspecialchars($row['Category'] ?? ''); ?></td>
+                            <td class="num"><?php echo number_format($stock); ?></td>
+                            <td><span class="pill <?php echo $healthPill; ?>" title="Warning level: <?php echo $low; ?>"><?php echo $healthLabel; ?></span></td>
+                            <td class="num">$<?php echo number_format((float) $row['SalesPrice'], 2); ?></td>
+                            <td class="num">$<?php echo number_format($stock * (float) $row['SalesPrice'], 2); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php else: ?>
+                <div class="empty-state"><h2>No items yet</h2><a href="addInventory.php" class="btn btn-primary">Add item</a></div>
+            <?php endif; ?>
+        </section>
+    </main>
 
     <script>
-    function toggleCustomDate() {
-        const picker = document.getElementById('customDatePicker');
-        picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
-    }
+    document.getElementById('customToggle').addEventListener('click', function (e) {
+        e.preventDefault();
+        const range = document.getElementById('customRange');
+        range.hidden = !range.hidden;
+        this.setAttribute('aria-expanded', String(!range.hidden));
+        if (!range.hidden) document.getElementById('dateFrom').focus();
+    });
     </script>
 
     <?php echo $footer; ?>

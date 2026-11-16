@@ -1,49 +1,56 @@
 <?php
 session_start();
 include '../includes/connection.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['userID'], $_SESSION['GroupID'])) {
     header("Location: ../logIn.php");
     exit();
 }
 
-// Must be a POST request and have ExportOrderID
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['ExportOrderID'])) {
-    die("Invalid request.");
+function backToExports($key, $text) {
+    header("Location: ../exportWarehouseView.php?" . http_build_query([$key => $text]));
+    exit();
 }
 
-$User_Id       = $_SESSION["userID"];
+// Only admins manage export records (the list hides Delete from staff)
+if (($_SESSION['Role'] ?? '') === 'Staff') {
+    backToExports('error', 'Only admins can delete export records.');
+}
+
+// Must be a POST request and have ExportOrderID
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['ExportOrderID'])) {
+    backToExports('error', 'Choose an export to delete.');
+}
+
+$GroupID       = $_SESSION["GroupID"];
 $exportOrderID = trim($_POST['ExportOrderID']);
 
-// Double-check user owns this ExportOrder
-$checkQuery = "SELECT ExportOrderID FROM ExportOrders WHERE ExportOrderID = ? AND UserID = ?";
-$stmtCheck = $conn->prepare($checkQuery);
-$stmtCheck->bind_param("si", $exportOrderID, $User_Id);
-$stmtCheck->execute();
-$result = $stmtCheck->get_result();
-if ($result->num_rows === 0) {
-    $stmtCheck->close();
-    $conn->close();
-    die("Invalid request: You do not own this export order or it doesn't exist.");
-}
-$stmtCheck->close();
+try {
+    // Any admin in the warehouse can delete its export records; stock that was sent is not added back
+    $conn->begin_transaction();
+    $stmtItems = $conn->prepare("
+        DELETE eoi FROM ExportOrderItems eoi
+        INNER JOIN ExportOrders eo ON eoi.ExportOrderID = eo.ExportOrderID
+        WHERE eo.ExportOrderID = ? AND eo.GroupID = ?
+    ");
+    $stmtItems->bind_param("si", $exportOrderID, $GroupID);
+    $stmtItems->execute();
+    $stmtItems->close();
 
-// Delete ExportOrder
-$deleteQuery = "DELETE FROM ExportOrders WHERE ExportOrderID = ? AND UserID = ?";
-$stmtDel = $conn->prepare($deleteQuery);
-$stmtDel->bind_param("si", $exportOrderID, $User_Id);
-
-if ($stmtDel->execute()) {
+    $stmtDel = $conn->prepare("DELETE FROM ExportOrders WHERE ExportOrderID = ? AND GroupID = ?");
+    $stmtDel->bind_param("si", $exportOrderID, $GroupID);
+    $stmtDel->execute();
+    $deleted = $stmtDel->affected_rows;
     $stmtDel->close();
-    $conn->close();
-    // Redirect back to the export view page with success message
-    header("Location: ../exportWarehouseView.php?message=Export+Order+Deleted+Successfully");
-    exit();
-} else {
-    $stmtDel->close();
-    $conn->close();
-    die("Failed to delete export order.");
+    $conn->commit();
+} catch (mysqli_sql_exception $e) {
+    $conn->rollback();
+    error_log("deleteExportOrder.php: " . $e->getMessage());
+    backToExports('error', 'Something went wrong deleting that export. Nothing was deleted.');
 }
-?>
+
+$conn->close();
+if ($deleted === 0) {
+    backToExports('error', 'That export record was already deleted.');
+}
+backToExports('message', "Deleted the record of export $exportOrderID.");

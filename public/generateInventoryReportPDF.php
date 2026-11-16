@@ -32,14 +32,20 @@ if ($stmt) {
     $stmt->close();
 }
 
-// Define date range for summary queries.
-$dateFrom = '1970-01-01';
-$dateTo = date("Y-m-d H:i:s");
+// Date range for the summary: the period chosen on the reports page, or all time
+$parseDate = function ($value) {
+    $d = DateTime::createFromFormat('Y-m-d H:i:s', (string) $value);
+    return $d && $d->format('Y-m-d H:i:s') === $value ? $value : null;
+};
+$dateFrom = $parseDate($_POST['date_from'] ?? '') ?? '1970-01-01 00:00:00';
+$dateTo   = $parseDate($_POST['date_to'] ?? '') ?? date("Y-m-d H:i:s");
+$periodLabel = $dateFrom === '1970-01-01 00:00:00' ? 'All time' : substr($dateFrom, 0, 10) . ' to ' . substr($dateTo, 0, 10);
 
 class PDF extends FPDF
 {
     public $warehouseName;
     public $exportedBy;
+    public $periodLabel;
 
     function Header()
     {
@@ -50,6 +56,7 @@ class PDF extends FPDF
         $this->SetFont('Arial', '', 11);
         $this->Cell(0, 8, 'Warehouse: ' . $this->warehouseName, 0, 1);
         $this->Cell(0, 8, 'Exported By: ' . $this->exportedBy, 0, 1);
+        $this->Cell(0, 8, 'Period: ' . $this->periodLabel, 0, 1);
         $this->Cell(0, 8, 'Generated: ' . date('Y-m-d H:i:s'), 0, 1);
         $this->Ln(5);
     }
@@ -181,13 +188,14 @@ try {
     $queryImport = "SELECT COUNT(DISTINCT OrderID) as count, SUM(Quantity) as totalItems, SUM(SalesPrice*Quantity) as totalValue 
                     FROM OrderItems 
                     WHERE OrderID IN (
-                        SELECT OrderID FROM Orders WHERE UserID=? AND OrderDate BETWEEN ? AND ?
+                        SELECT OrderID FROM Orders
+                        WHERE UserID IN (SELECT UserID FROM RoleAccess WHERE GroupID = ?) AND OrderDate BETWEEN ? AND ?
                     )";
     $stmt = $conn->prepare($queryImport);
     if (!$stmt) {
         throw new Exception("Prepare failed for import summary: " . $conn->error);
     }
-    $stmt->bind_param("iss", $User_Id, $dateFrom, $dateTo);
+    $stmt->bind_param("iss", $GroupID, $dateFrom, $dateTo);
     $stmt->execute();
     $import = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -195,12 +203,12 @@ try {
     // --- Fetch Exports Summary ---
     $queryExport = "SELECT COUNT(ExportOrderID) as count, SUM(TotalItems) as totalItems, SUM(TotalValue) as totalValue 
                     FROM ExportOrders 
-                    WHERE UserID=? AND ExportDate BETWEEN ? AND ?";
+                    WHERE GroupID = ? AND ExportDate BETWEEN ? AND ?";
     $stmt = $conn->prepare($queryExport);
     if (!$stmt) {
         throw new Exception("Prepare failed for export summary: " . $conn->error);
     }
-    $stmt->bind_param("iss", $User_Id, $dateFrom, $dateTo);
+    $stmt->bind_param("iss", $GroupID, $dateFrom, $dateTo);
     $stmt->execute();
     $export = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -211,6 +219,7 @@ try {
     $pdf = new PDF();
     $pdf->warehouseName = $warehouseName;
     $pdf->exportedBy = $userName;
+    $pdf->periodLabel = $periodLabel;
     $pdf->AddPage();
 
     // Current Inventory Section

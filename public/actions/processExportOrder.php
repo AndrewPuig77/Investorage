@@ -13,7 +13,7 @@ $User_Id    = $_SESSION["userID"];
 $GroupID    = $_SESSION["GroupID"];
 $Role       = $_SESSION["Role"] ?? '';
 if ($Role === 'Staff') {
-    echo "<script>alert('Insufficient Permissions'); window.location.href='../exportWarehouseView.php';</script>";
+    header("Location: ../exportWarehouseView.php?error=" . urlencode("Only admins can create exports."));
     exit();
 }
 
@@ -25,6 +25,36 @@ $exportedBy    = $_SESSION["userName"] ?? "Unknown";
 $exportOrderID = uniqid("EXP_");
 $totalItems    = 0;
 $totalValue    = 0.0;
+
+function backToExportForm($text) {
+    header("Location: ../warehouseExport.php?error=" . urlencode($text));
+    exit();
+}
+
+// Check everything before changing any stock
+if ($location === '') {
+    backToExportForm("Enter where the export is going.");
+}
+if (!is_array($selectedItems) || empty($selectedItems)) {
+    backToExportForm("Enter a quantity for at least one item.");
+}
+$stockCheck = $conn->prepare("SELECT Name, Stock FROM Inventory WHERE SKU = ? AND GroupID = ?");
+foreach ($selectedItems as $sku) {
+    $qtyText = (string) ($quantities[$sku] ?? '');
+    $stockCheck->bind_param("si", $sku, $GroupID);
+    $stockCheck->execute();
+    $row = $stockCheck->get_result()->fetch_assoc();
+    if (!$row) {
+        backToExportForm("One of the selected items is no longer in your warehouse.");
+    }
+    if (!ctype_digit($qtyText) || (int) $qtyText < 1) {
+        backToExportForm("Enter a quantity of 1 or more for {$row['Name']}.");
+    }
+    if ((int) $qtyText > (int) $row['Stock']) {
+        backToExportForm("Only {$row['Stock']} of {$row['Name']} in stock.");
+    }
+}
+$stockCheck->close();
 
 // Calculate totals
 foreach ($selectedItems as $sku) {

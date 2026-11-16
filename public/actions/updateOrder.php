@@ -24,6 +24,7 @@ if (!empty($items)) {
         $category        = $item['Category'];
         $description     = $item['Description'];
         $salesPrice      = floatval($item['SalesPrice']);
+        // The order quantity; Confirm Delivery adds Quantity to inventory, so keep both in step
         $stock           = intval($item['Stock']);
         $lowStockWarning = intval($item['LowStockWarning']);
         $status          = $item['Status'];
@@ -34,22 +35,22 @@ if (!empty($items)) {
         // For Admin: update using orderID and item id.
         if ($isAdmin) {
             $query = "UPDATE OrderItems 
-                      SET SKU = ?, Name = ?, Category = ?, Description = ?, SalesPrice = ?, Stock = ?, LowStockWarning = ?, Status = ? 
+                      SET SKU = ?, Name = ?, Category = ?, Description = ?, SalesPrice = ?, Stock = ?, Quantity = ?, LowStockWarning = ?, Status = ? 
                       WHERE id = ? AND OrderID = ?";
             $stmt = $conn->prepare($query);
             if (!$stmt) {
                 die("Prepare failed: " . $conn->error);
             }
-            $stmt->bind_param("ssssdiissi", $sku, $name, $category, $description, $salesPrice, $stock, $lowStockWarning, $status, $id, $orderID);
+            $stmt->bind_param("ssssdiiisis", $sku, $name, $category, $description, $salesPrice, $stock, $stock, $lowStockWarning, $status, $id, $orderID);
         } else { // For non-admin: also filter by User_Id.
             $query = "UPDATE OrderItems 
-                      SET SKU = ?, Name = ?, Category = ?, Description = ?, SalesPrice = ?, Stock = ?, LowStockWarning = ?, Status = ? 
+                      SET SKU = ?, Name = ?, Category = ?, Description = ?, SalesPrice = ?, Stock = ?, Quantity = ?, LowStockWarning = ?, Status = ? 
                       WHERE id = ? AND OrderID = ? AND User_Id = ?";
             $stmt = $conn->prepare($query);
             if (!$stmt) {
                 die("Prepare failed: " . $conn->error);
             }
-            $stmt->bind_param("ssssdiisisi", $sku, $name, $category, $description, $salesPrice, $stock, $lowStockWarning, $status, $id, $orderID, $User_Id);
+            $stmt->bind_param("ssssdiiisisi", $sku, $name, $category, $description, $salesPrice, $stock, $stock, $lowStockWarning, $status, $id, $orderID, $User_Id);
         }
         $stmt->execute();
         $stmt->close();

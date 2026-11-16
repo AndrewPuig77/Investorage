@@ -58,100 +58,177 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 mysqli_close($conn);
+$statusOptions = ['In-Stock', 'Ordered', 'Backordered', 'Reserved', 'Dropped'];
+$isPending = $order['OrderStatus'] === 'pending';
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <?php echo $head; ?>
-    <meta charset="UTF-8">
-    <title>Edit Order <?php echo htmlspecialchars($orderID); ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <title>Edit order <?php echo htmlspecialchars($orderID); ?> | Investorage</title>
+    <style>
+        .edit-table input.form-control,
+        .edit-table select.form-select {
+            min-height: 40px;
+            padding: 6px 10px;
+            font-size: 0.875rem;
+        }
+
+        .edit-table td {
+            padding: 10px 8px;
+        }
+
+        .edit-table .col-num {
+            width: 110px;
+        }
+
+        .save-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-color);
+            border-radius: 0 0 14px 14px;
+            background: var(--card-bg);
+        }
+
+        .save-bar .total {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .save-bar .total strong {
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
 </head>
 <body>
     <?php echo $navActive; ?>
-    <?php echo $tagline; ?>
-    
-<style>
-  body {
-    background-color: var(--dark-bg);
-    color: #f5f5f5;
-  }
-</style>
-    <div class="container mt-5">
-        <h2>Edit Order <?php echo htmlspecialchars($orderID); ?></h2>
-        <p><strong>Order Status:</strong> <?php echo htmlspecialchars($order['OrderStatus']); ?></p>
-        <!-- Form for updating order items -->
-        <form action="actions/updateOrder.php" method="post">
-            <!-- Hidden field to pass the OrderID -->
+
+    <main class="page">
+        <header class="page-header">
+            <div class="titles">
+                <a class="back-link" href="orderManagement.php"><i class="fas fa-arrow-left" aria-hidden="true"></i> Incoming orders</a>
+                <h1>Edit order <span class="mono" style="font-size: inherit"><?php echo htmlspecialchars($orderID); ?></span></h1>
+            </div>
+            <?php echo $isPending ? '<span class="pill pill-watch">Awaiting delivery</span>' : '<span class="pill pill-ok">Received</span>'; ?>
+        </header>
+
+        <?php if (!$isPending): ?>
+            <div class="alert alert-warning mb-0" role="note">
+                This order has already been received, so its items are in inventory. Changes here only correct the order record.
+            </div>
+        <?php endif; ?>
+
+        <form action="actions/updateOrder.php" method="post" id="orderForm" class="panel">
             <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($orderID); ?>">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>SKU</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Sales Price</th>
-                        <th>Stock</th>
-                        <th>Low Stock Warning</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($items as $index => $item): ?>
-                    <tr>
-                        <!-- Use array notation on input names for editing each row -->
-                        <td>
-                            <input type="text" name="items[<?php echo $index; ?>][SKU]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['SKU']); ?>">
-                        </td>
-                        <td>
-                            <input type="text" name="items[<?php echo $index; ?>][Name]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['Name']); ?>">
-                        </td>
-                        <td>
-                            <input type="text" name="items[<?php echo $index; ?>][Category]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['Category']); ?>">
-                        </td>
-                        <td>
-                            <input type="text" name="items[<?php echo $index; ?>][Description]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['Description']); ?>">
-                        </td>
-                        <td>
-                            <input type="number" step="0.01" name="items[<?php echo $index; ?>][SalesPrice]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['SalesPrice']); ?>">
-                        </td>
-                        <td>
-                            <input type="number" name="items[<?php echo $index; ?>][Stock]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['Stock']); ?>">
-                        </td>
-                        <td>
-                            <input type="number" name="items[<?php echo $index; ?>][LowStockWarning]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['LowStockWarning']); ?>">
-                        </td>
-                        <td>
-                            <input type="text" name="items[<?php echo $index; ?>][Status]" class="form-control"
-                                   value="<?php echo htmlspecialchars($item['Status']); ?>">
-                        </td>
-                        <td>
-                            <!-- Button to remove the order item -->
-                            <button type="submit" formaction="actions/removeOrderItem.php" name="itemID"
-                                    value="<?php echo htmlspecialchars($item['id']); ?>" class="btn btn-danger btn-sm">
-                                Remove
-                            </button>
-                        </td>
-                        <!-- Hidden field for the order item ID -->
-                        <input type="hidden" name="items[<?php echo $index; ?>][id]" value="<?php echo htmlspecialchars($item['id']); ?>">
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-            <button type="submit" class="btn btn-primary">Save Changes to Order</button>
+            <div class="panel-bar">
+                <h2 class="panel-title">Items</h2>
+                <span>Quantity is what will be added to inventory when the order is marked received.</span>
+            </div>
+
+            <?php if (!empty($items)): ?>
+            <div class="table-wrap">
+                <table class="data-table edit-table" style="min-width: 980px">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th class="col-num">Price</th>
+                            <th class="col-num">Quantity</th>
+                            <th class="col-num">Warn at</th>
+                            <th>Status</th>
+                            <th><span class="visually-hidden">Remove</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $index => $item):
+                            $field = fn($name) => "items[$index][$name]";
+                            $quantity = $item['Quantity'] ?? $item['Stock'];
+                        ?>
+                        <tr>
+                            <td><input type="text" name="<?php echo $field('SKU'); ?>" class="form-control mono" aria-label="SKU" value="<?php echo htmlspecialchars($item['SKU']); ?>" required></td>
+                            <td><input type="text" name="<?php echo $field('Name'); ?>" class="form-control" aria-label="Name" value="<?php echo htmlspecialchars($item['Name']); ?>" required></td>
+                            <td><input type="text" name="<?php echo $field('Category'); ?>" class="form-control" aria-label="Category" value="<?php echo htmlspecialchars($item['Category'] ?? ''); ?>"></td>
+                            <td><input type="number" step="0.01" min="0" name="<?php echo $field('SalesPrice'); ?>" class="form-control price-input" aria-label="Price" value="<?php echo htmlspecialchars($item['SalesPrice']); ?>" required></td>
+                            <td><input type="number" step="1" min="0" name="<?php echo $field('Stock'); ?>" class="form-control qty-input" aria-label="Quantity" value="<?php echo htmlspecialchars($quantity); ?>" required></td>
+                            <td><input type="number" step="1" min="0" name="<?php echo $field('LowStockWarning'); ?>" class="form-control" aria-label="Low-stock warning level" value="<?php echo htmlspecialchars($item['LowStockWarning']); ?>" required></td>
+                            <td>
+                                <select name="<?php echo $field('Status'); ?>" class="form-select" aria-label="Status">
+                                    <?php
+                                    $options = in_array($item['Status'], $statusOptions, true) ? $statusOptions : array_merge([$item['Status']], $statusOptions);
+                                    foreach ($options as $option): ?>
+                                        <option value="<?php echo htmlspecialchars($option); ?>" <?php echo $option === $item['Status'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($option); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input type="hidden" name="<?php echo $field('Description'); ?>" value="<?php echo htmlspecialchars($item['Description'] ?? ''); ?>">
+                                <input type="hidden" name="<?php echo $field('id'); ?>" value="<?php echo htmlspecialchars($item['id']); ?>">
+                            </td>
+                            <td>
+                                <button type="submit" formaction="actions/removeOrderItem.php" formnovalidate name="itemID"
+                                        value="<?php echo htmlspecialchars($item['id']); ?>" class="btn-icon danger"
+                                        aria-label="Remove <?php echo htmlspecialchars($item['Name']); ?> from this order" title="Remove from order"
+                                        data-confirm="Remove <?php echo htmlspecialchars($item['Name']); ?> from this order?">
+                                    <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php else: ?>
+                <div class="empty-state">
+                    <h2>This order has no items</h2>
+                    <p>You can delete it from the orders list.</p>
+                </div>
+            <?php endif; ?>
+
+            <div class="save-bar">
+                <span class="total">Order total <strong id="orderTotal">$<?php echo number_format((float) $order['TotalAmount'], 2); ?></strong></span>
+                <div class="d-flex gap-2">
+                    <a href="orderManagement.php" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"<?php echo empty($items) ? ' disabled' : ''; ?>>Save changes</button>
+                </div>
+            </div>
         </form>
-        <a href="orderManagement.php" class="btn btn-secondary mt-3">Back to Order Management</a>
-    </div>
+    </main>
+
+    <?php include 'includes/flash.php'; ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('orderForm');
+
+        // Keep the total in step with prices and quantities
+        function updateTotal() {
+            let total = 0;
+            form.querySelectorAll('tbody tr').forEach(function (row) {
+                const price = parseFloat(row.querySelector('.price-input').value) || 0;
+                const qty = parseInt(row.querySelector('.qty-input').value, 10) || 0;
+                total += price * qty;
+            });
+            document.getElementById('orderTotal').textContent = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        form.addEventListener('input', updateTotal);
+
+        // Ask before removing an item
+        form.addEventListener('submit', function (e) {
+            const message = e.submitter && e.submitter.dataset.confirm;
+            if (message && !window.confirm(message)) {
+                e.preventDefault();
+            }
+        });
+    });
+    </script>
     <?php echo $footer; ?>
 </body>
 </html>

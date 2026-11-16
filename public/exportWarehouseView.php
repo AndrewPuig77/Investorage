@@ -1,4 +1,5 @@
 <?php
+// exportWarehouseView.php - outgoing orders (exports); incoming orders are the Orders tab
 session_start();
 include 'includes/connection.php';
 include 'includes/indexElements.php';
@@ -14,10 +15,9 @@ $GroupID = $_SESSION["GroupID"];
 $Role = $_SESSION["Role"] ?? '';
 $isStaff = $Role === 'Staff';
 
-// Fetch ExportOrders by GroupID
-$query = "SELECT ExportOrderID, ExportDate, Destination, ExportedBy, TotalItems, TotalValue 
-          FROM ExportOrders 
-          WHERE GroupID = ? 
+$query = "SELECT ExportOrderID, ExportDate, Destination, ExportedBy, TotalItems, TotalValue
+          FROM ExportOrders
+          WHERE GroupID = ?
           ORDER BY ExportDate DESC";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $GroupID);
@@ -29,89 +29,121 @@ while ($row = $result->fetch_assoc()) {
     $exportOrders[] = $row;
 }
 $stmt->close();
+
+// For the Incoming tab's count
+$importCountStmt = $conn->prepare("SELECT COUNT(*) AS total FROM Orders o INNER JOIN RoleAccess r ON o.UserID = r.UserID WHERE r.GroupID = ?");
+$importCountStmt->bind_param("i", $GroupID);
+$importCountStmt->execute();
+$importCount = (int) $importCountStmt->get_result()->fetch_assoc()['total'];
+$importCountStmt->close();
 $conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-<?php echo $head; ?>
-<?php echo $navActive; ?>
-<?php echo $tagline; ?>
-
 <head>
-    <meta charset="UTF-8">
-    <title>Inventory Export History</title>
+  <?php echo $head; ?>
+  <title>Outgoing orders | Investorage</title>
 </head>
-
 <body>
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Order Management</h2>
-        <div>
-            <?php if (!$isStaff): ?>
-                <a href="warehouseExport.php" class="btn btn-primary">Export Inventory Order</a>
-            <?php endif; ?>
-            <select class="form-select form-select-sm d-inline-block w-auto ms-2" onchange="location = this.value;">
-                <option selected disabled>View By...</option>
-                <option value="orderManagement.php">Inventory Imports</option>
-                <option value="exportWarehouseView.php">Inventory Exports</option>
-            </select>
-        </div>
-    </div>
+  <?php echo $navActive; ?>
 
-    <?php if (!empty($exportOrders)): ?>
-        <table class="table table-striped">
-            <thead>
+  <main class="page">
+    <header class="page-header">
+      <div class="titles">
+        <p class="page-eyebrow">Stock coming in and going out</p>
+        <h1>Orders</h1>
+      </div>
+      <?php if (!$isStaff): ?>
+        <a href="warehouseExport.php" class="btn btn-primary"><i class="fas fa-truck" aria-hidden="true"></i> New export</a>
+      <?php endif; ?>
+    </header>
+
+    <nav class="tabs" aria-label="Order type">
+      <a href="orderManagement.php"><i class="fas fa-arrow-down" aria-hidden="true"></i> Incoming <span class="tab-count"><?php echo $importCount; ?></span></a>
+      <a class="active" href="exportWarehouseView.php" aria-current="page"><i class="fas fa-arrow-up" aria-hidden="true"></i> Outgoing <span class="tab-count"><?php echo count($exportOrders); ?></span></a>
+    </nav>
+
+    <section class="panel" aria-label="Outgoing orders">
+      <div class="panel-bar">
+        <span>Stock sent to other locations. Creating an export takes the quantities out of inventory.</span>
+      </div>
+
+      <?php if (!empty($exportOrders)): ?>
+      <div class="table-wrap">
+        <table class="data-table" style="min-width: 760px">
+          <thead>
             <tr>
-                <th>Export ID</th>
-                <th>Export Date</th>
-                <th>Destination</th>
-                <th>Exported By</th>
-                <th>Total Items</th>
-                <th>Total Value</th>
-                <th>Actions</th>
+              <th>Export</th>
+              <th>Sent</th>
+              <th>Destination</th>
+              <th>By</th>
+              <th class="num">Units</th>
+              <th class="num">Value</th>
+              <th><span class="visually-hidden">Actions</span></th>
             </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($exportOrders as $order): ?>
-                <tr>
-                    <td><?= htmlspecialchars($order['ExportOrderID']) ?></td>
-                    <td><?= htmlspecialchars($order['ExportDate']) ?></td>
-                    <td><?= htmlspecialchars($order['Destination']) ?></td>
-                    <td><?= htmlspecialchars($order['ExportedBy']) ?></td>
-                    <td><?= htmlspecialchars($order['TotalItems']) ?></td>
-                    <td>$<?= number_format($order['TotalValue'], 2) ?></td>
-                    <td>
-                        <?php if (!$isStaff): ?>
-                            <form action="actions/deleteExportOrder.php" method="post" style="display:inline-block;" 
-                                  onsubmit="return confirm('Are you sure you want to delete this export order?');">
-                                <input type="hidden" name="ExportOrderID" value="<?= htmlspecialchars($order['ExportOrderID']) ?>">
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        <?php endif; ?>
-
-                        <form action="exportWarehouseManagement.php" method="get" style="display:inline-block; margin-left:5px;">
-                            <input type="hidden" name="exportOrderID" value="<?= htmlspecialchars($order['ExportOrderID']) ?>">
-                            <select name="type" class="form-select form-select-sm d-inline-block w-auto" required>
-                                <option value="" disabled selected>Export as...</option>
-                                <option value="csv">CSV</option>
-                                <?php if (!$isStaff): ?>
-                                    <option value="pdf">PDF</option>
-                                <?php endif; ?>
-                                <option value="web">Web View</option>
-                            </select>
-                            <button type="submit" class="btn btn-secondary btn-sm mt-1">Export</button>
-                        </form>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
+          </thead>
+          <tbody>
+          <?php foreach ($exportOrders as $i => $order):
+              $id = htmlspecialchars($order['ExportOrderID']);
+          ?>
+            <tr>
+              <td><span class="mono"><?php echo $id; ?></span></td>
+              <td><?php echo date('M j, Y', strtotime($order['ExportDate'])); ?></td>
+              <td><?php echo htmlspecialchars($order['Destination']); ?></td>
+              <td><?php echo htmlspecialchars($order['ExportedBy']); ?></td>
+              <td class="num"><?php echo number_format((int) $order['TotalItems']); ?></td>
+              <td class="num">$<?php echo number_format((float) $order['TotalValue'], 2); ?></td>
+              <td>
+                <div class="row-actions">
+                  <a class="btn-row" href="exportWarehouseManagement.php?<?php echo htmlspecialchars(http_build_query(['exportOrderID' => $order['ExportOrderID'], 'type' => 'web'])); ?>"><i class="fas fa-eye" aria-hidden="true"></i> View</a>
+                  <div class="dropdown">
+                    <button type="button" class="btn-icon" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More actions for <?php echo $id; ?>">
+                      <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="exportWarehouseManagement.php?<?php echo htmlspecialchars(http_build_query(['exportOrderID' => $order['ExportOrderID'], 'type' => 'csv'])); ?>"><i class="fas fa-file-csv" aria-hidden="true"></i> Download CSV</a></li>
+                      <?php if (!$isStaff): ?>
+                        <li><a class="dropdown-item" href="exportWarehouseManagement.php?<?php echo htmlspecialchars(http_build_query(['exportOrderID' => $order['ExportOrderID'], 'type' => 'pdf'])); ?>" target="_blank"><i class="fas fa-file-pdf" aria-hidden="true"></i> Download PDF</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><button type="submit" form="delete-<?php echo $i; ?>" class="dropdown-item danger"><i class="fas fa-trash-alt" aria-hidden="true"></i> Delete record</button></li>
+                      <?php endif; ?>
+                    </ul>
+                  </div>
+                  <?php if (!$isStaff): ?>
+                    <form id="delete-<?php echo $i; ?>" action="actions/deleteExportOrder.php" method="post" class="d-none"
+                          data-confirm="Delete the record of export <?php echo $id; ?>? Stock that was sent is not added back.">
+                      <input type="hidden" name="ExportOrderID" value="<?php echo $id; ?>">
+                    </form>
+                  <?php endif; ?>
+                </div>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
         </table>
-    <?php else: ?>
-        <div class="alert alert-warning">No export orders found.</div>
-    <?php endif; ?>
-</div>
+      </div>
+      <?php else: ?>
+        <div class="empty-state">
+          <h2>No outgoing orders yet</h2>
+          <p>An export sends stock to another location and takes it out of this warehouse's inventory.</p>
+          <?php if (!$isStaff): ?>
+            <a href="warehouseExport.php" class="btn btn-primary"><i class="fas fa-truck" aria-hidden="true"></i> New export</a>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+    </section>
+  </main>
 
-<?php echo $footer; ?>
+  <?php include 'includes/flash.php'; ?>
+  <script>
+    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        if (!window.confirm(form.dataset.confirm)) {
+          e.preventDefault();
+        }
+      });
+    });
+  </script>
+  <?php echo $footer; ?>
 </body>
 </html>

@@ -117,47 +117,77 @@ if ($exportType === 'pdf') {
 
 // --- Default: Render Web View ---
 include 'includes/indexElements.php';
+$isPending = $order['OrderStatus'] === 'pending';
+$downloadQuery = fn($type) => htmlspecialchars(http_build_query(['orderID' => $orderID, 'type' => $type]));
+$formatDay = fn($value) => $value ? date('M j, Y', strtotime($value)) : '–';
 echo $license;
 ?>
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <?php echo $head; ?>
+  <title>Order <?php echo htmlspecialchars($orderID); ?> | Investorage</title>
 </head>
 <body>
   <?php echo $navActive; ?>
 
-  <div class="container mt-5 pt-5">
-    <h2>Order Details for Order ID: <?php echo htmlspecialchars($orderID); ?></h2>
-    <p><strong>Order Date:</strong> <?php echo htmlspecialchars($order['OrderDate']); ?></p>
-    <p><strong>Status:</strong> <?php echo htmlspecialchars($order['OrderStatus']); ?></p>
-    <p><strong>Expected Delivery:</strong> <?php echo htmlspecialchars($order['ExpectedDeliveryDate']); ?></p>
-    <p><strong>Total Amount:</strong> $<?php echo number_format($order['TotalAmount'],2); ?></p>
+  <main class="page">
+    <header class="page-header">
+      <div class="titles">
+        <a class="back-link" href="orderManagement.php"><i class="fas fa-arrow-left" aria-hidden="true"></i> Incoming orders</a>
+        <h1>Order <span class="mono" style="font-size: inherit"><?php echo htmlspecialchars($orderID); ?></span></h1>
+      </div>
+      <a class="btn btn-secondary" href="exportOrder.php?<?php echo $downloadQuery('csv'); ?>"><i class="fas fa-file-csv" aria-hidden="true"></i> CSV</a>
+      <a class="btn btn-secondary" href="exportOrder.php?<?php echo $downloadQuery('pdf'); ?>" target="_blank"><i class="fas fa-file-pdf" aria-hidden="true"></i> PDF</a>
+      <?php if ($isPending): ?>
+        <a class="btn btn-secondary" href="editOrder.php?orderID=<?php echo urlencode($orderID); ?>"><i class="fas fa-pen" aria-hidden="true"></i> Edit</a>
+        <form action="actions/confirmOrder.php" method="post" class="d-inline"
+              onsubmit="return confirm('Mark this order as received? Its items will be added to inventory.');">
+          <input type="hidden" name="orderID" value="<?php echo htmlspecialchars($orderID); ?>">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-check" aria-hidden="true"></i> Mark received</button>
+        </form>
+      <?php endif; ?>
+    </header>
 
-    <table class="table table-bordered mt-3">
-      <thead>
-        <tr>
-          <th>SKU</th><th>Name</th><th>Category</th>
-          <th>Description</th><th>Price</th><th>Stock</th><th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($items as $item): ?>
-          <tr>
-            <td><?php echo htmlspecialchars($item['SKU']); ?></td>
-            <td><?php echo htmlspecialchars($item['Name']); ?></td>
-            <td><?php echo htmlspecialchars($item['Category']); ?></td>
-            <td><?php echo htmlspecialchars($item['Description']); ?></td>
-            <td><?php echo htmlspecialchars($item['SalesPrice']); ?></td>
-            <td><?php echo htmlspecialchars($item['Stock']); ?></td>
-            <td><?php echo htmlspecialchars($item['Status']); ?></td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+    <section class="stat-tiles" aria-label="Order summary">
+      <div class="stat-tile">
+        <span>Status</span>
+        <div><?php echo $isPending ? '<span class="pill pill-watch">Awaiting delivery</span>' : '<span class="pill pill-ok">Received</span>'; ?></div>
+      </div>
+      <div class="stat-tile"><span>Placed</span><strong style="font-size: 1.125rem"><?php echo $formatDay($order['OrderDate']); ?></strong></div>
+      <div class="stat-tile">
+        <span><?php echo $isPending ? 'Expected' : 'Received'; ?></span>
+        <strong style="font-size: 1.125rem"><?php echo $formatDay($isPending ? $order['ExpectedDeliveryDate'] : $order['DateCompleted']); ?></strong>
+      </div>
+      <div class="stat-tile"><span>Total</span><strong>$<?php echo number_format((float) $order['TotalAmount'], 2); ?></strong></div>
+    </section>
 
-    <a href="orderManagement.php" class="btn btn-secondary mt-3">← Back to Order Management</a>
-  </div>
+    <section class="panel" aria-label="Items in this order">
+      <div class="panel-bar"><h2 class="panel-title">Items</h2><span><?php echo count($items); ?> products</span></div>
+      <div class="table-wrap">
+        <table class="data-table" style="min-width: 640px">
+          <thead>
+            <tr><th>Product</th><th>Category</th><th class="num">Price</th><th class="num">Quantity</th><th class="num">Line total</th></tr>
+          </thead>
+          <tbody>
+          <?php foreach ($items as $item):
+              $qty = (int) ($item['Quantity'] ?? $item['Stock']);
+          ?>
+            <tr>
+              <td>
+                <div style="font-weight: 600"><?php echo htmlspecialchars($item['Name']); ?></div>
+                <div class="cell-sub mono"><?php echo htmlspecialchars($item['SKU']); ?></div>
+              </td>
+              <td><?php echo htmlspecialchars($item['Category'] ?? ''); ?></td>
+              <td class="num">$<?php echo number_format((float) $item['SalesPrice'], 2); ?></td>
+              <td class="num"><?php echo number_format($qty); ?></td>
+              <td class="num">$<?php echo number_format((float) $item['SalesPrice'] * $qty, 2); ?></td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
   <?php echo $footer; ?>
 </body>
