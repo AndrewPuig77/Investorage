@@ -1,4 +1,4 @@
-# 📦 Investorage
+#  Investorage
 **Modern Full-Stack Inventory Management System**
 
 A comprehensive web-based inventory management platform designed for small-to-medium enterprises, featuring real-time tracking, intelligent analytics, and seamless team collaboration.
