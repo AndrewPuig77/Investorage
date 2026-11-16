@@ -105,6 +105,27 @@ if ($sortBy === 'Stock' || $sortBy === 'SalesPrice') {
     $orderClause = "ORDER BY $sortBy $sortOrder";
 }
 
+// Download the current view (every page of it) as a CSV file
+if (($_GET['format'] ?? '') === 'csv') {
+    $csvStmt = $conn->prepare("SELECT SKU, Name, Category, Description, SalesPrice, Stock, LowStockWarning, Status " . $baseQuery . " " . $orderClause);
+    $csvStmt->bind_param($types, ...$params);
+    $csvStmt->execute();
+    $csvRows = $csvStmt->get_result();
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="inventory-' . ($stockFilter === 'low' ? 'low-stock-' : '') . date('Y-m-d') . '.csv"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['SKU', 'Name', 'Category', 'Description', 'Price', 'Stock', 'Warning level', 'Health', 'Status']);
+    while ($row = $csvRows->fetch_assoc()) {
+        $health = $row['Stock'] <= $row['LowStockWarning'] ? 'Low' : ($row['Stock'] <= $row['LowStockWarning'] + 10 ? 'Watch' : 'Healthy');
+        fputcsv($out, [$row['SKU'], $row['Name'], $row['Category'], $row['Description'], $row['SalesPrice'], $row['Stock'], $row['LowStockWarning'], $health, $row['Status']]);
+    }
+    fclose($out);
+    $csvStmt->close();
+    $conn->close();
+    exit();
+}
+
 $query = "SELECT * " . $baseQuery . " " . $orderClause . " LIMIT ? OFFSET ?";
 $types .= "ii";
 $params[] = $perPage;
@@ -675,7 +696,7 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
                 <p>Find, edit and remove items</p>
                 <h1>Inventory</h1>
             </div>
-            <a href="warehouseExport.php" class="btn btn-secondary"><i class="fas fa-truck" aria-hidden="true"></i> Export</a>
+            <a href="<?php echo htmlspecialchars(listUrl($currentQuery, ['format' => 'csv', 'page' => ''])); ?>" class="btn btn-secondary"><i class="fas fa-file-csv" aria-hidden="true"></i> Download CSV</a>
             <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
         </header>
 
