@@ -528,7 +528,7 @@ $conn->close();
                            class="btn-action btn-reorder">
                             <i class="fas fa-shopping-cart"></i> Reorder
                         </a>
-                        <a href="changeInventory.php?sku=<?php echo urlencode($item['SKU']); ?>" 
+                        <a href="searchInventory.php?<?php echo htmlspecialchars(http_build_query(['search' => $item['SKU'], 'edit' => $item['SKU']])); ?>"
                            class="btn-action btn-update">
                             <i class="fas fa-edit"></i> Update Stock
                         </a>

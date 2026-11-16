@@ -351,6 +351,21 @@ $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good
     margin: 0;
 }
 
+a.attention-item {
+    color: var(--text-primary);
+    border: 1px solid transparent;
+}
+
+a.attention-item:hover {
+    color: var(--text-primary);
+    border-color: #3A4352;
+}
+
+.attention-edit {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+}
+
 .mono {
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.75rem;
@@ -502,15 +517,16 @@ $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good
                 <?php foreach ($attention as $item):
                     $isLow = $item['Stock'] <= $item['LowStockWarning'];
                 ?>
-                <div class="attention-item">
+                <a class="attention-item" href="searchInventory.php?<?php echo htmlspecialchars(http_build_query(['search' => $item['SKU'], 'edit' => $item['SKU']])); ?>">
                     <div style="flex: 1; min-width: 0">
                         <p class="fw-semibold text-truncate"><?php echo htmlspecialchars($item['Name']); ?></p>
                         <p class="mono mt-1"><?php echo htmlspecialchars($item['SKU']); ?> · <?php echo (int) $item['Stock']; ?> left · warn at <?php echo (int) $item['LowStockWarning']; ?></p>
                     </div>
                     <span class="pill <?php echo $isLow ? 'pill-low' : 'pill-watch'; ?>"><?php echo $isLow ? 'Low' : 'Watch'; ?></span>
-                </div>
+                    <i class="fas fa-pen attention-edit" aria-hidden="true"></i>
+                </a>
                 <?php endforeach; ?>
-                <a href="changeInventory.php" class="btn btn-secondary">Update stock levels</a>
+                <a href="searchInventory.php?stock=low" class="btn btn-secondary">See all low stock items</a>
             <?php endif; ?>
         </section>
     </div>

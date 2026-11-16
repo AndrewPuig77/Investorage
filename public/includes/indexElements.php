@@ -562,8 +562,6 @@ $navActive = '
     <div class="app-nav-label">Inventory</div>
     ' . $appNavLink('searchInventory.php', 'fas fa-boxes', 'All items') . '
     ' . $appNavLink('addInventory.php', 'fas fa-plus', 'Add item') . '
-    ' . $appNavLink('changeInventory.php', 'fas fa-pen', 'Update item') . '
-    ' . $appNavLink('removeInventory.php', 'fas fa-minus-circle', 'Remove items') . '
     ' . $appNavLink('lowstockReport.php', 'fas fa-exclamation-triangle', 'Low stock') . '
     <div class="app-nav-label">Orders</div>
     ' . $appNavLink('orderManagement.php', 'fas fa-list', 'Orders', ['editOrder.php']) . '
