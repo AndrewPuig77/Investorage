@@ -447,6 +447,7 @@ if (!isset($_SESSION["userID"])) {
     formData.append('skipDuplicates', document.getElementById('skipDuplicates').checked);
     formData.append('autoGenerateOrderID', document.getElementById('autoGenerateOrderID').checked);
     formData.append('invalidCount', invalidItems.length);
+    formData.append('csrf_token', <?php echo json_encode(csrfToken()); ?>);
 
     fetch('actions/processOrderImport.php', { method: 'POST', body: formData })
       .then(function (response) {
