@@ -239,7 +239,7 @@ $conn->close();
                 <div class="empty-state">
                     <h2>Nothing to export yet</h2>
                     <p>Add items to your inventory first.</p>
-                    <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
+                    <a href="searchInventory.php?add=1" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
                 </div>
             </section>
         <?php endif; ?>

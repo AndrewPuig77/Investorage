@@ -292,7 +292,7 @@ $changeStyles = [
             <div class="stat-tile"><span>Inventory value</span><strong>$<?php echo number_format($stats['totalValue'], 0); ?></strong></div>
             <div class="stat-tile">
                 <span>Low stock</span><strong><?php echo number_format($stats['lowStockItems']); ?></strong>
-                <small><a href="lowstockReport.php">Low stock report</a></small>
+                <small><a href="searchInventory.php?stock=low">See low stock</a></small>
             </div>
         </section>
 
@@ -387,7 +387,7 @@ $changeStyles = [
                 </table>
             </div>
             <?php else: ?>
-                <div class="empty-state"><h2>No items yet</h2><a href="addInventory.php" class="btn btn-primary">Add item</a></div>
+                <div class="empty-state"><h2>No items yet</h2><a href="searchInventory.php?add=1" class="btn btn-primary">Add item</a></div>
             <?php endif; ?>
         </section>
     </main>

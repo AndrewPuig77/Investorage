@@ -431,7 +431,7 @@ a.attention-item:hover {
     <?php if ($showNewUserWelcome): ?>
     <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
         <h4 class="alert-heading h5"><i class="fas fa-check-circle"></i> Welcome to Investorage</h4>
-        <p class="mb-0">Your account is ready. Start by <a href="addInventory.php" class="alert-link">adding items</a> or <a href="orderImport.php" class="alert-link">importing an order</a>. Need help? See the <a href="help.php" class="alert-link">documentation</a>.</p>
+        <p class="mb-0">Your account is ready. Start by <a href="searchInventory.php?add=1" class="alert-link">adding items</a> or <a href="orderImport.php" class="alert-link">importing an order</a>. Need help? See the <a href="help.php" class="alert-link">documentation</a>.</p>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <?php endif; ?>
@@ -453,7 +453,7 @@ a.attention-item:hover {
             <label for="dash-search-input" class="visually-hidden">Search inventory</label>
             <input id="dash-search-input" type="search" name="search" placeholder="Search SKU, name, category">
         </form>
-        <a href="addInventory.php" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
+        <a href="searchInventory.php?add=1" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add item</a>
     </header>
 
     <section class="kpi-grid" aria-label="Key figures">
@@ -473,7 +473,7 @@ a.attention-item:hover {
             <span class="kpi-label">Low stock</span>
             <span class="kpi-value"><?php echo number_format($stats['lowStock']); ?></span>
             <span class="kpi-note"><?php echo number_format($stats['watchStock']); ?> more within 10 units</span>
-            <a href="lowstockReport.php" class="stretched-link" aria-label="Open low stock report"></a>
+            <a href="searchInventory.php?stock=low" class="stretched-link" aria-label="See low stock items"></a>
         </div>
         <div class="kpi">
             <span class="kpi-label">Pending orders</span>
@@ -509,7 +509,7 @@ a.attention-item:hover {
         <section class="panel" style="flex: 2 1 320px">
             <div class="panel-head">
                 <h2>Needs attention</h2>
-                <a href="lowstockReport.php">Low stock report</a>
+                <a href="searchInventory.php?stock=low">See low stock</a>
             </div>
             <?php if (empty($attention)): ?>
                 <p class="empty-note">Everything is comfortably stocked.</p>
