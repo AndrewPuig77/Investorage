@@ -37,7 +37,7 @@ if (!empty($items)) {
                       WHERE id = ? AND OrderID = ?";
             $stmt = $conn->prepare($query);
             if (!$stmt) {
-                die("Prepare failed: " . $conn->error);
+                throw new RuntimeException("Prepare failed: " . $conn->error);
             }
             $stmt->bind_param("ssssdiiisis", $sku, $name, $category, $description, $salesPrice, $stock, $stock, $lowStockWarning, $status, $id, $orderID);
         } else { // For non-admin: also filter by User_Id.
@@ -46,7 +46,7 @@ if (!empty($items)) {
                       WHERE id = ? AND OrderID = ? AND User_Id = ?";
             $stmt = $conn->prepare($query);
             if (!$stmt) {
-                die("Prepare failed: " . $conn->error);
+                throw new RuntimeException("Prepare failed: " . $conn->error);
             }
             $stmt->bind_param("ssssdiiisisi", $sku, $name, $category, $description, $salesPrice, $stock, $stock, $lowStockWarning, $status, $id, $orderID, $User_Id);
         }
@@ -62,14 +62,14 @@ if ($isAdmin) {
     $query = "UPDATE Orders SET TotalAmount = ? WHERE OrderID = ?";
     $stmt = $conn->prepare($query);
     if (!$stmt) {
-        die("Prepare failed for order update: " . $conn->error);
+        throw new RuntimeException("Prepare failed for order update: " . $conn->error);
     }
     $stmt->bind_param("ds", $totalAmount, $orderID);
 } else {
     $query = "UPDATE Orders SET TotalAmount = ? WHERE OrderID = ? AND UserID = ?";
     $stmt = $conn->prepare($query);
     if (!$stmt) {
-        die("Prepare failed for order update: " . $conn->error);
+        throw new RuntimeException("Prepare failed for order update: " . $conn->error);
     }
     $stmt->bind_param("dsi", $totalAmount, $orderID, $User_Id);
 }

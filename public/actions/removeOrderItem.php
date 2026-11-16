@@ -15,14 +15,14 @@ if ($isAdmin) {
     $query = "DELETE FROM OrderItems WHERE id = ? AND OrderID = ?";
     $stmt = $conn->prepare($query);
     if (!$stmt) {
-        die("Prepare failed in removeOrderItem: " . $conn->error);
+        throw new RuntimeException("Prepare failed in removeOrderItem: " . $conn->error);
     }
     $stmt->bind_param("si", $itemID, $orderID);
 } else {
     $query = "DELETE FROM OrderItems WHERE id = ? AND OrderID = ? AND User_Id = ?";
     $stmt = $conn->prepare($query);
     if (!$stmt) {
-        die("Prepare failed in removeOrderItem: " . $conn->error);
+        throw new RuntimeException("Prepare failed in removeOrderItem: " . $conn->error);
     }
     $stmt->bind_param("isi", $itemID, $orderID, $User_Id);
 }

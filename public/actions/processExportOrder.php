@@ -61,7 +61,7 @@ foreach ($selectedItems as $sku) {
 
     $stmt = $conn->prepare("SELECT SalesPrice FROM Inventory WHERE SKU = ? AND GroupID = ?");
     if (!$stmt) {
-        die("Error preparing SalesPrice query: " . $conn->error);
+        throw new RuntimeException("Error preparing SalesPrice query: " . $conn->error);
     }
 
     $stmt->bind_param("si", $sku, $GroupID);
@@ -76,7 +76,7 @@ foreach ($selectedItems as $sku) {
 // Insert export order
 $stmt = $conn->prepare("INSERT INTO ExportOrders (ExportOrderID, ExportDate, Destination, ExportedBy, UserID, GroupID, TotalItems, TotalValue) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
-    die("Error preparing export order insert: " . $conn->error);
+    throw new RuntimeException("Error preparing export order insert: " . $conn->error);
 }
 $stmt->bind_param("sssiiid", $exportOrderID, $location, $exportedBy, $User_Id, $GroupID, $totalItems, $totalValue);
 $stmt->execute();
@@ -89,7 +89,7 @@ foreach ($selectedItems as $sku) {
     // Get category and stock
     $stmt = $conn->prepare("SELECT Category, Stock FROM Inventory WHERE SKU = ? AND GroupID = ?");
     if (!$stmt) {
-        die("Error preparing item fetch: " . $conn->error);
+        throw new RuntimeException("Error preparing item fetch: " . $conn->error);
     }
 
     $stmt->bind_param("si", $sku, $GroupID);
@@ -104,7 +104,7 @@ foreach ($selectedItems as $sku) {
         // Insert into ExportOrderItems
         $stmtInsert = $conn->prepare("INSERT INTO ExportOrderItems (ExportOrderID, SKU, Category, QuantityExported) VALUES (?, ?, ?, ?)");
         if (!$stmtInsert) {
-            die("Error preparing export order item insert: " . $conn->error);
+            throw new RuntimeException("Error preparing export order item insert: " . $conn->error);
         }
         $stmtInsert->bind_param("sssi", $exportOrderID, $sku, $category, $quantity);
         $stmtInsert->execute();
@@ -113,7 +113,7 @@ foreach ($selectedItems as $sku) {
         // Update inventory stock
         $stmtUpdate = $conn->prepare("UPDATE Inventory SET Stock = ? WHERE SKU = ? AND GroupID = ?");
         if (!$stmtUpdate) {
-            die("Error preparing inventory update: " . $conn->error);
+            throw new RuntimeException("Error preparing inventory update: " . $conn->error);
         }
         $stmtUpdate->bind_param("isi", $newStock, $sku, $GroupID);
         $stmtUpdate->execute();
@@ -124,7 +124,7 @@ foreach ($selectedItems as $sku) {
         $newVal = "Stock: $newStock (exported $quantity)";
         $log = $conn->prepare("INSERT INTO inventory_log (SKU, ChangeType, OldValue, NewValue, CreatedAt, User_Id) VALUES (?, 'export', ?, ?, NOW(), ?)");
         if (!$log) {
-            die("Error preparing inventory log: " . $conn->error);
+            throw new RuntimeException("Error preparing inventory log: " . $conn->error);
         }
         $log->bind_param("sssi", $sku, $oldVal, $newVal, $User_Id);
         $log->execute();
