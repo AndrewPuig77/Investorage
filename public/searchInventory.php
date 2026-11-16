@@ -105,6 +105,20 @@ if ($sortBy === 'Stock' || $sortBy === 'SalesPrice') {
     $orderClause = "ORDER BY $sortBy $sortOrder";
 }
 
+// Summary for the low stock view: how many are Low vs Watch, and the stock value involved
+$lowSummary = null;
+if ($stockFilter === 'low') {
+    $sumStmt = $conn->prepare("
+        SELECT COALESCE(SUM(CASE WHEN Stock <= LowStockWarning THEN 1 ELSE 0 END), 0) AS lowItems,
+               COALESCE(SUM(CASE WHEN Stock > LowStockWarning THEN 1 ELSE 0 END), 0) AS watchItems,
+               COALESCE(SUM(Stock * SalesPrice), 0) AS stockValue
+        " . $baseQuery);
+    $sumStmt->bind_param($types, ...$params);
+    $sumStmt->execute();
+    $lowSummary = $sumStmt->get_result()->fetch_assoc();
+    $sumStmt->close();
+}
+
 // Download the current view (every page of it) as a CSV file
 if (($_GET['format'] ?? '') === 'csv') {
     $csvStmt = $conn->prepare("SELECT SKU, Name, Category, Description, SalesPrice, Stock, LowStockWarning, Status " . $baseQuery . " " . $orderClause);
@@ -302,6 +316,19 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
 
         .clear-link {
             font-size: 0.875rem;
+        }
+
+        .low-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 24px;
+            padding: 12px 16px;
+            border: 1px solid rgba(224,162,59,.3);
+            border-radius: 12px;
+            background: rgba(224,162,59,.06);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
         }
 
         /* Results */
@@ -742,6 +769,14 @@ function sortHeader(array $currentQuery, $column, $label, $sortBy, $sortOrder, $
             <?php endif; ?>
             <noscript><button type="submit" class="btn btn-secondary">Search</button></noscript>
         </form>
+
+        <?php if ($lowSummary && $totalItems > 0): ?>
+        <section class="low-summary" aria-label="Low stock summary">
+            <div><span class="pill pill-low"><?php echo (int) $lowSummary['lowItems']; ?> Low</span> at or below their warning level</div>
+            <div><span class="pill pill-watch"><?php echo (int) $lowSummary['watchItems']; ?> Watch</span> within 10 of it</div>
+            <div>$<?php echo number_format((float) $lowSummary['stockValue'], 2); ?> of stock on hand</div>
+        </section>
+        <?php endif; ?>
 
         <form method="post" action="actions/removeItems.php" id="bulkForm">
             <input type="hidden" name="return" value="<?php echo htmlspecialchars($returnQuery); ?>">
